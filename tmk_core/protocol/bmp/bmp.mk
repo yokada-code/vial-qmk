@@ -1,0 +1,2 @@
+PROTOCOL_DIR = protocol
+BMP_DIR = $(PROTOCOL_DIR)/bmp

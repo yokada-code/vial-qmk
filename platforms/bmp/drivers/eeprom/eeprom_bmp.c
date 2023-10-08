@@ -23,6 +23,7 @@ void eeprom_read_block(void *buf, const void *addr, size_t len) {
             addr: 0-based offset within the EEPROM
             len: length to read
      */
+    memset(buf, 0, len);
 }
 
 void eeprom_write_block(const void *buf, void *addr, size_t len) {

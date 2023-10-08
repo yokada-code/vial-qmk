@@ -5,6 +5,7 @@
 #include "util.h"
 #include "print.h"
 #include "matrix.h"
+#include "raw_hid.h"
 
 // TMK headers
 #include "host_driver.h"
@@ -75,6 +76,18 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
     return BMP_OK;
 }
 
+void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
+    static uint8_t via_data[32];
+    if (len > sizeof(via_data) + 1) {
+        printf("<raw_hid>Too large packet");
+        return;
+    }
+
+    memcpy(via_data, data, len - 1);
+
+    raw_hid_receive(via_data, len - 1);
+}
+
 void bmp_main_task(void *_) {}
 
 void bmp_init(void) {
@@ -93,6 +106,7 @@ void bmp_init(void) {
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);
+    BMPAPI->usb.set_raw_receive_cb(bmp_raw_hid_receive);
 
     BMPAPI->usb.init(config, true);
     BMPAPI->ble.init(config);

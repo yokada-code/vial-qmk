@@ -20,6 +20,13 @@ else ifneq ("$(wildcard $(KEYBOARD_PATH_1)/ld/$(MCU_LDSCRIPT).ld)","")
     LDSCRIPT = $(KEYBOARD_PATH_1)/ld/$(MCU_LDSCRIPT).ld
 endif
 
+# Shared Compiler flags for all toolchains
+SHARED_CFLAGS += -mcpu=cortex-m4
+SHARED_CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+SHARED_CFLAGS += -mthumb -mabi=aapcs
+SHARED_CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
+SHARED_CFLAGS += -fno-builtin -fshort-enums
+
 MCUFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant
 # Linker flags
 LDFLAGS += -mthumb -mabi=aapcs

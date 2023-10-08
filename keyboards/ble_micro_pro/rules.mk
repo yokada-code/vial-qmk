@@ -1,8 +1,12 @@
 # MCU name
 MCU = cortex-m4
+MCU_LDSCRIPT = nrf52840_bmp
 PLATFORM_KEY = bmp
 BOOTLOADER = custom
-EEPROM_DRIVER  = wear_leveling
+EEPROM_DRIVER  = custom
+
+CUSTOM_MATRIX = yes
+MOUSE_SHARED_EP = no
 
 # Build Options
 #   change yes to no to disable

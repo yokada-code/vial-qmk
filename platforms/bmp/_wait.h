@@ -3,4 +3,7 @@
 
 #pragma once
 
-#include "quantum.h"
+#include <stdint.h>
+
+void wait_us(uint16_t duration);
+void wait_ms(uint16_t duration);

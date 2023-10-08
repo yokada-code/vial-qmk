@@ -3,12 +3,29 @@ SRC += $(PLATFORM_COMMON_DIR)/drivers/eeprom/eeprom_bmp.c
 
 CONFIG_H += $(PLATFORM_COMMON_DIR)/config.h
 
+UF2_FAMILY = NRF52840
+
+# Linker script selection.
+##############################################################################
+
+ifneq ("$(wildcard $(KEYBOARD_PATH_5)/ld/$(MCU_LDSCRIPT).ld)","")
+    LDSCRIPT = $(KEYBOARD_PATH_5)/ld/$(MCU_LDSCRIPT).ld
+else ifneq ("$(wildcard $(KEYBOARD_PATH_4)/ld/$(MCU_LDSCRIPT).ld)","")
+    LDSCRIPT = $(KEYBOARD_PATH_4)/ld/$(MCU_LDSCRIPT).ld
+else ifneq ("$(wildcard $(KEYBOARD_PATH_3)/ld/$(MCU_LDSCRIPT).ld)","")
+    LDSCRIPT = $(KEYBOARD_PATH_3)/ld/$(MCU_LDSCRIPT).ld
+else ifneq ("$(wildcard $(KEYBOARD_PATH_2)/ld/$(MCU_LDSCRIPT).ld)","")
+    LDSCRIPT = $(KEYBOARD_PATH_2)/ld/$(MCU_LDSCRIPT).ld
+else ifneq ("$(wildcard $(KEYBOARD_PATH_1)/ld/$(MCU_LDSCRIPT).ld)","")
+    LDSCRIPT = $(KEYBOARD_PATH_1)/ld/$(MCU_LDSCRIPT).ld
+endif
+
 MCUFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fsingle-precision-constant
 # Linker flags
 LDFLAGS += -mthumb -mabi=aapcs
 
-# LDSCRIPT_PATH := $(shell dirname "$(LDSCRIPT)")
-# LDFLAGS += -L$(LDSCRIPT_PATH) -T$(LDSCRIPT)
+LDSCRIPT_PATH := $(shell dirname "$(LDSCRIPT)")
+LDFLAGS += -L$(LDSCRIPT_PATH) -T$(LDSCRIPT)
 
 LDFLAGS += -mcpu=cortex-m4
 LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16

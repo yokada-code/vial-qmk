@@ -23,10 +23,20 @@ static MSCMD      mscmd;
 static cli_app_t  cli_app = {NULL, NULL};
 
 static MSCMD_USER_RESULT usrcmd_help(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_advertise(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
+                                            {"reset", usrcmd_reset, "Reset system"},
+                                            {"adv", usrcmd_advertise, "Start advertising"},
+                                            {"dis", usrcmd_disconnect, "Disconnect BLE"},
+                                            {"sel", usrcmd_select_connection, "Select USB/BLE"},
+                                            {"show", usrcmd_bonding_information, "Show bonded devices"},
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
 #ifdef USER_DEFINED_MSCMD
@@ -79,6 +89,94 @@ static MSCMD_USER_RESULT usrcmd_help(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
         cli_puts(table[i].desc);
         cli_puts("\r\n");
     }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    uint32_t safemode_flag = 0;
+    char     arg[16];
+
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        if (strcmp(arg, "safe") == 0) {
+            safemode_flag = 1;
+        }
+    }
+
+    BMPAPI->app.reset(safemode_flag);
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_advertise(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[4];
+
+    bmp_api_config_t const *const config = BMPAPI->app.get_config();
+
+    if (config->mode != SPLIT_SLAVE) {
+        if (msopt->argc >= 2) {
+            msopt_get_argv(msopt, 1, arg, sizeof(arg));
+            uint8_t id = (uint8_t)atoi(arg);
+            BMPAPI->ble.advertise(id);
+        } else {
+            BMPAPI->ble.advertise(255);
+        }
+    }
+
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    if (msopt->argc >= 2) {
+        print("disconnect all\n");
+        BMPAPI->ble.disconnect(1);
+    } else {
+        print("disconnect device\n");
+        BMPAPI->ble.disconnect(0);
+    }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[16];
+
+    xprintf("Usage: select <usb/ble>\n");
+
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        if (strcmp(arg, "ble") == 0) {
+            printf("Switch to BLE\n");
+            select_ble();
+        } else if (strcmp(arg, "usb") == 0) {
+            printf("Switch to USB\n");
+            select_usb();
+        }
+    }
+
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    bmp_api_bonding_info_t peers[8];
+    uint32_t               peer_cnt = sizeof(peers) / sizeof(peers[0]);
+
+    BMPAPI->ble.get_bonding_info(peers, &peer_cnt);
+
+    bmp_api_config_t const *const config = BMPAPI->app.get_config();
+
+    cli_puts("{\"bonding\":[\n");
+
+    for (int i = 0; i < peer_cnt; i++) {
+        // print mac address
+        printf("{\"id\":%2d, \"type\":\"%s\",\"name\":\"%s\",\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\"}", peers[i].id, (peers[i].role == 2) ? "Slave " : (config->mode == SPLIT_SLAVE) ? "Master" : "Device", peers[i].name, peers[i].addr[5], peers[i].addr[4], peers[i].addr[3], peers[i].addr[2], peers[i].addr[1], peers[i].addr[0]);
+
+        if (i < peer_cnt - 1) {
+            microshell.uart_putc(',');
+        }
+
+        microshell.uart_putc('\n');
+    }
+    cli_puts("]}");
+    microshell.uart_putc('\0');
     return 0;
 }
 

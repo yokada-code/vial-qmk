@@ -6,6 +6,8 @@ BOOTLOADER = custom
 EEPROM_DRIVER  = custom
 
 CUSTOM_MATRIX = yes
+SPLIT_KEYBOARD = yes
+SPLIT_TRANSPORT = custom
 MOUSE_SHARED_EP = no
 
 # Build Options

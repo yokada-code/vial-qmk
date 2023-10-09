@@ -1,4 +1,5 @@
 SRC += $(PLATFORM_COMMON_DIR)/wait.c
+SRC += $(PLATFORM_COMMON_DIR)/transport.c
 SRC += $(PLATFORM_COMMON_DIR)/drivers/eeprom/eeprom_bmp.c
 
 CONFIG_H += $(PLATFORM_COMMON_DIR)/config.h

@@ -19,6 +19,7 @@
 #    define MATRIX_SCAN_TIME_MS 17
 #endif
 const uint8_t MAINTASK_INTERVAL = MATRIX_SCAN_TIME_MS;
+int           reset_counter;
 
 /* -------------------------
  *   TMK host driver defs
@@ -88,7 +89,10 @@ void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
     raw_hid_receive(via_data, len - 1);
 }
 
-void bmp_main_task(void *_) {}
+extern void timer_tick(uint32_t tick);
+void bmp_main_task(void *_) {
+    timer_tick(MAINTASK_INTERVAL);
+}
 
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {

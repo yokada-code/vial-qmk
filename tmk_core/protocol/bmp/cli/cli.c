@@ -96,6 +96,7 @@ static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usr
         } else if (strcmp(arg, "keyboard") == 0) {
             debug_enable   = true;
             debug_keyboard = true;
+            debug_matrix   = true;
         } else if (strcmp(arg, "mouse") == 0) {
             debug_enable = true;
             debug_mouse  = true;

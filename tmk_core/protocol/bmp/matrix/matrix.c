@@ -140,11 +140,11 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
         dprintf("device rows:\n");
         for (uint8_t idx = 0; idx < device_row; idx++) {
             if (config->matrix.cols <= 8) {
-                dprintf("\tdr%02d:0x%02x\n", idx, matrix_debouncing[idx + matrix_offset]);
+                dprintf("\tdr%02d:0x%02x\n", idx, (uint8_t)matrix_debouncing[idx + matrix_offset]);
             } else if (config->matrix.cols <= 16) {
-                dprintf("\tdr%02d:0x%04x\n", idx, matrix_debouncing[idx + matrix_offset]);
+                dprintf("\tdr%02d:0x%04x\n", idx, (uint16_t)matrix_debouncing[idx + matrix_offset]);
             } else {
-                dprintf("\tdr%02d:0x%08x\n", idx, matrix_debouncing[idx + matrix_offset]);
+                dprintf("\tdr%02d:0x%08lx\n", idx, (uint32_t)matrix_debouncing[idx + matrix_offset]);
             }
         }
         dprintf("\n");
@@ -164,11 +164,11 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
         dprintf("matrix rows:\n");
         for (uint8_t idx = 0; idx < device_row; idx++) {
             if (device_col <= 8) {
-                dprintf("\tr%02d:0x%02x\n", idx, _matrix[idx]);
+                dprintf("\tr%02d:0x%02x\n", idx, (uint8_t)_matrix[idx]);
             } else if (device_col <= 16) {
-                dprintf("\tr%02d:0x%04x\n", idx, _matrix[idx]);
+                dprintf("\tr%02d:0x%04x\n", idx, (uint16_t)_matrix[idx]);
             } else {
-                dprintf("\tr%02d:0x%08x\n", idx, _matrix[idx]);
+                dprintf("\tr%02d:0x%08lx\n", idx, (uint32_t)_matrix[idx]);
             }
         }
         dprintf("\n");

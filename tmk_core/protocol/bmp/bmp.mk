@@ -1,5 +1,6 @@
 PROTOCOL_DIR = protocol
 BMP_DIR = $(PROTOCOL_DIR)/bmp
+OPT_DEFS += -UNO_DEBUG
 
 SRC += $(BMP_DIR)/gcc_startup_nrf52840.S
 SRC += $(BMP_DIR)/bmp.c

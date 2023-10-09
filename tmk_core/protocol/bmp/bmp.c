@@ -6,6 +6,7 @@
 #include "print.h"
 #include "matrix.h"
 #include "raw_hid.h"
+#include "keyboard.h"
 
 // TMK headers
 #include "host_driver.h"
@@ -89,11 +90,6 @@ void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
     raw_hid_receive(via_data, len - 1);
 }
 
-extern void timer_tick(uint32_t tick);
-void bmp_main_task(void *_) {
-    timer_tick(MAINTASK_INTERVAL);
-}
-
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {
         BMPAPI->bootloader_jump();
@@ -121,6 +117,13 @@ void bmp_init(void) {
     BMPAPI->logger.info("usb enable");
 }
 
+extern void timer_tick(uint32_t tick);
+void        bmp_main_task(void *_) {
+    timer_tick(MAINTASK_INTERVAL);
+
+    keyboard_task();
+}
+
 void protocol_setup(void) {
     bmp_init();
     host_set_driver(&driver);
@@ -140,4 +143,20 @@ void protocol_pre_task(void) {
 void protocol_post_task(void) {
     BMPAPI->usb.process();
     cli_exec();
+}
+
+void protocol_task(void) {
+    protocol_pre_task();
+
+    // keyboard_task();
+
+    protocol_post_task();
+}
+
+bool is_keyboard_master(void) {
+    return BMPAPI->app.get_config()->mode != SPLIT_SLAVE;
+}
+
+bool is_keyboard_left(void) {
+    return BMPAPI->app.get_config()->matrix.is_left_hand;
 }

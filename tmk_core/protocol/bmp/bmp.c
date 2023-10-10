@@ -116,11 +116,9 @@ void bmp_init(void) {
     BMPAPI->logger.info("usb enable");
 }
 
-extern void timer_tick(uint32_t tick);
+static bool do_keyboard_task = false;
 void        bmp_main_task(void *_) {
-    timer_tick(MAINTASK_INTERVAL);
-
-    keyboard_task();
+    do_keyboard_task = true;
 }
 
 void protocol_setup(void) {
@@ -147,7 +145,11 @@ void protocol_post_task(void) {
 void protocol_task(void) {
     protocol_pre_task();
 
-    // keyboard_task();
+    if(do_keyboard_task)
+    {
+        do_keyboard_task = false;
+        keyboard_task();
+    }
 
     protocol_post_task();
 }

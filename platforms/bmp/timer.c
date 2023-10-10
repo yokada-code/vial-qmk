@@ -3,27 +3,22 @@
 
 #include "timer.h"
 
+// BMP
+#include "apidef.h"
+
 // TODO: bmp
 
-static uint32_t timer_cnt;
+void timer_init(void) {}
 
-void timer_tick(uint32_t tick) {
-    timer_cnt += tick;
-}
-
-void timer_init(void) {
-    timer_cnt = 0;
-}
-void timer_clear(void) {
-    timer_cnt = 0;
-}
+void timer_clear(void) {}
 
 uint16_t timer_read(void) {
-    return timer_cnt & 0xffff;
+    return BMPAPI->timer.get_ms() & 0xffff;
 }
 
 uint32_t timer_read32(void) {
-    return timer_cnt;
+    // 27bit
+    return BMPAPI->timer.get_ms();
 }
 
 uint16_t timer_elapsed(uint16_t last) {
@@ -31,5 +26,5 @@ uint16_t timer_elapsed(uint16_t last) {
 }
 
 uint32_t timer_elapsed32(uint32_t last) {
-    return TIMER_DIFF_32(timer_read32(), last);
+    return TIMER_DIFF(timer_read32(), last, (1 << 27));
 }

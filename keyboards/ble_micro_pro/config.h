@@ -19,8 +19,6 @@
     { 33 }
 #define MATRIX_COL_PINS \
     { 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22 }
-#define MATRIX_LAYOUT \
-    { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 255 }
 
 #define DIODE_DIRECTION COL2ROW
 

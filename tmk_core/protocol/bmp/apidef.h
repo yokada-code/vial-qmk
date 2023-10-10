@@ -5,8 +5,8 @@
 
 #include "error_def.h"
 
-#define API_VERSION 13
-#define CONFIG_VERSION 2
+#define API_VERSION 14
+#define CONFIG_VERSION 3
 #define PINS_MAX 32
 
 #define DEVICE_NAME_MAX_LEN 32
@@ -16,13 +16,7 @@ typedef uint32_t bmp_api_matrix_col_t;
 
 typedef enum {
     BMP_RECORD,
-    KEYMAP_RECORD,
-    QMK_RECORD,
-    QMK_EE_RECORD,
-    BMP_EX_KEYCODE_RECORD,
-    BMP_ENC_RECORD,
     BMP_PAIR_DEVICE_RECORD,
-    BMP_MACRO_RECORD,
 } CONFIGURATION_RECORD_ID;
 
 typedef enum {
@@ -74,11 +68,10 @@ typedef struct {
 } bmp_api_i2cs_config_t;
 
 typedef struct {
-    uint32_t pid;
-    uint32_t vid;
+    uint16_t pid;
+    uint16_t vid;
     char     name[32];
-    char     manufacture[64];
-    char     description[64];
+    char     manufacture[32];
 } bmp_api_device_info_t;
 
 typedef struct {
@@ -123,10 +116,9 @@ typedef enum {
 } bmp_api_diode_direction_t;
 
 typedef struct {
-    uint32_t max_interval;
-    uint32_t min_interval;
-    uint32_t slave_latency;
-    uint32_t timeout;
+    uint16_t max_interval;
+    uint16_t min_interval;
+    uint16_t slave_latency;
 } bmp_api_ble_conn_param_t;
 
 typedef struct {
@@ -139,7 +131,6 @@ typedef struct {
     uint8_t diode_direction;
     uint8_t row_pins[32];
     uint8_t col_pins[32];
-    uint8_t layout[128];
 } bmp_api_matrix_config_t;
 
 typedef struct {
@@ -148,9 +139,9 @@ typedef struct {
 } bmp_api_led_config_t;
 
 typedef struct {
-    uint8_t locale;
-    uint8_t use_ascii;
-} bmp_api_keymap_config_t;
+    uint8_t  pin[2];
+    uint8_t  step;
+} bmp_api_encoder_config_t;
 
 typedef struct {
     uint32_t                 version;
@@ -161,33 +152,9 @@ typedef struct {
     bmp_api_ble_conn_param_t param_peripheral;
     bmp_api_ble_conn_param_t param_central;  // for split master
     bmp_api_led_config_t     led;
-    bmp_api_keymap_config_t  keymap;
+    bmp_api_encoder_config_t encoder[4];
     uint8_t                  reserved[8];
 } bmp_api_config_t;
-
-typedef struct {
-    uint8_t raw[64];
-} bmp_qmk_eeconfig_t;
-
-typedef struct {
-    uint16_t qkc;
-    uint16_t tapping_term;
-} bmp_tapping_term_setting_t;
-
-typedef struct {
-    bmp_tapping_term_setting_t tapping_term[16];
-} bmp_qmk_config_t;
-
-typedef struct {
-    uint8_t  pin[2];
-    uint8_t  step;
-    uint16_t action[5][2];
-} bmp_encoder_t;
-
-typedef struct {
-    uint32_t      enabled;
-    bmp_encoder_t encoder[4];
-} bmp_encoder_config_t;
 
 typedef struct {
     uint8_t modfier;
@@ -224,14 +191,6 @@ typedef union {
 } bmp_api_switch_state_t;
 
 typedef struct {
-    uint16_t        len;
-    uint16_t        keynum;
-    const uint16_t* array;
-    uint8_t         layout_code[4];
-    const char*     layout_name;
-} bmp_api_keymap_info_t;
-
-typedef struct {
     uint8_t  tx_pin;
     uint8_t  rx_pin;
     uint32_t baudrate;
@@ -259,17 +218,8 @@ typedef struct {
     bmp_error_t (*push_keystate_change)(bmp_api_key_event_t const* const key);
     uint32_t (*pop_keystate_change)(bmp_api_key_event_t* key, uint32_t len,
                                     uint8_t burst_threshold);
-    uint16_t (*keymap_key_to_keycode)(uint8_t layer, bmp_api_keypos_t const* const key);
-    bmp_error_t (*set_keycode_to_keymap)(uint8_t layer, bmp_api_keypos_t const* const key,
-                                         uint16_t keycode);
-    bmp_error_t (*set_keymap)(const uint16_t* keymap, uint16_t len, const char* layout_name);
-    void (*set_layout_code)(const uint8_t* layout_code);
     bmp_error_t (*set_config)(bmp_api_config_t const* const);
-    bmp_error_t (*get_keymap_info)(bmp_api_keymap_info_t* const keymap_info);
     const bmp_api_config_t* (*get_config)(void);
-    bmp_error_t (*save_file)(uint8_t file_id);
-    bmp_error_t (*delete_file)(uint8_t file_id);
-    bmp_error_t (*get_file)(uint8_t file_id, uint8_t** buf, uint32_t* const len);
     uint16_t (*get_vcc_mv)(void);
     uint16_t (*get_vcc_percent)(void);
     bmp_error_t (*set_state_change_cb)(bmp_api_state_change_cb_t);
@@ -435,19 +385,23 @@ typedef struct {
     float (*read)(void);
 } bmp_api_cpu_temp_t;
 
+typedef struct {
+    uint32_t (*get_ms)(void);
+    void     (*sleep_us)(uint32_t us);
+    void     (*sleep_ms)(uint32_t ms);
+} bmp_api_timer_t;
+
+typedef struct {
+    bmp_error_t (*init)(uint8_t* cache, uint32_t len);
+    void (*write)(uint32_t addr, uint16_t data);
+    void (*write_raw_page)(uint32_t page, uint32_t* data);
+    void (*read_raw_data)(uint32_t addr, uint8_t* data, uint32_t len);
+    void (*erase)(void);
+} bmp_api_eeprom_t;
+
 #ifndef BMP_PAGE_SIZE
-#    define BMP_PAGE_SIZE 1024
+#    define BMP_PAGE_SIZE 4096
 #endif
-#define LAYOUT_NAME_MAX_LEN 32
-#define LAYOUT_CODE_LEN 4
-#define DYNAMIC_KEYMAP_MAX_LEN                           \
-    ((BMP_PAGE_SIZE /*Page size(word)*/                  \
-      - 2           /*Page tag*/                         \
-      - 3           /*FS Header*/                        \
-      - 1           /*len*/                              \
-      - 1           /*Library requirement?*/             \
-      - LAYOUT_NAME_MAX_LEN / 4 - LAYOUT_CODE_LEN / 4) * \
-     2)
 
 typedef struct {
     //////DO NOT CHANGE///////
@@ -470,6 +424,8 @@ typedef struct {
     bmp_api_uart_t       uart;
     bmp_api_ecs_t        ecs;
     bmp_api_cpu_temp_t   temp;
+    bmp_api_timer_t      timer;
+    bmp_api_eeprom_t     eeprom;
     bmp_api_spi_slave_t  spis;
 } bmp_api_t;
 

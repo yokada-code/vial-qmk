@@ -43,7 +43,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                         : BMP_DEFAULT_MODE == 1 ? SPLIT_MASTER
                                                         : BMP_DEFAULT_MODE == 2 ? SPLIT_SLAVE
                                                                                 : SINGLE,
-                                         .device_info = {PRODUCT_ID, VENDOR_ID, PRODUCT, STR(MANUFACTURER), STR(DESCRIPTION)},
+                                         .device_info = {PRODUCT_ID, VENDOR_ID, PRODUCT, STR(MANUFACTURER)},
                                          .matrix =
                                              {
                                                  .rows            = MATRIX_ROWS_DEFAULT,
@@ -54,7 +54,6 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .diode_direction = DIODE_DIRECTION == ROW2COL ? 1 : 0,
                                                  .row_pins        = MATRIX_ROW_PINS,
                                                  .col_pins        = MATRIX_COL_PINS,
-                                                 .layout          = MATRIX_LAYOUT,
                                              },
                                          .param_peripheral = {60, 30, 7},
                                          .param_central    = {60, 30, 7},

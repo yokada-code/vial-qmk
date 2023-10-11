@@ -16,6 +16,7 @@
 #include "cli.h"
 #include "apidef.h"
 #include "bmp.h"
+#include "bmp_host_driver.h"
 
 void              cli_puts(const char *str);
 static MICROSHELL microshell;

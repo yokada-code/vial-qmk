@@ -15,12 +15,13 @@
 // BMP headers
 #include "apidef.h"
 #include "cli.h"
+#include "bmp.h"
+#include "state_controller.h"
 
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
 #endif
-const uint8_t MAINTASK_INTERVAL = MATRIX_SCAN_TIME_MS;
-int           reset_counter;
+const uint8_t MAINTASK_INTERVAL       = MATRIX_SCAN_TIME_MS;
 
 /* -------------------------
  *   TMK host driver defs
@@ -64,7 +65,6 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
 };
 
 static bool is_safe_mode_ = false;
-
 bool is_safe_mode(void) {
     return is_safe_mode_;
 }
@@ -73,9 +73,6 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
-bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
-    return BMP_OK;
-}
 
 void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
     static uint8_t via_data[32];
@@ -97,17 +94,17 @@ void bmp_init(void) {
     BMPAPI->logger.init();
     BMPAPI->logger.info("logger init");
 
-    const bmp_api_config_t *config = &default_config;
-    is_safe_mode_                  = (BMPAPI->app.init(&default_config) > 0);
+    is_safe_mode_ = (BMPAPI->app.init() > 0);
 
     // start in safe mode
+    const bmp_api_config_t *config = &default_config;
     BMPAPI->app.set_config(&default_config);
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);
     BMPAPI->usb.set_raw_receive_cb(bmp_raw_hid_receive);
 
-    BMPAPI->usb.init(config, true);
+    BMPAPI->usb.init(config, false);
     BMPAPI->ble.init(config);
     BMPAPI->logger.info("usb init");
     cli_init();
@@ -140,6 +137,7 @@ void protocol_pre_task(void) {
 void protocol_post_task(void) {
     BMPAPI->usb.process();
     cli_exec();
+    bmp_mode_transition_check();
 }
 
 void protocol_task(void) {

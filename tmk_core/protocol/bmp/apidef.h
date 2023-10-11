@@ -11,6 +11,9 @@
 
 #define DEVICE_NAME_MAX_LEN 32
 
+#define BMP_USER_FLASH_PAGE_SIZE 4096
+#define BMP_USER_FLASH_PAGE_LEN 3
+
 typedef uint32_t bmp_api_matrix_row_t;
 typedef uint32_t bmp_api_matrix_col_t;
 
@@ -210,7 +213,7 @@ typedef bmp_error_t (*bmp_api_msc_write_cb_t)(const uint8_t* dat, uint32_t len);
 typedef bmp_error_t (*bmp_api_state_change_cb_t)(bmp_api_event_t event);
 
 typedef struct {
-    int32_t (*init)(bmp_api_config_t const* const);
+    int32_t (*init)(void);
     void (*reset)(uint32_t);
     void (*enter_sleep_mode)(void);
     void (*main_task_start)(void (*main_task)(void*), uint8_t interval_ms);
@@ -392,12 +395,11 @@ typedef struct {
 } bmp_api_timer_t;
 
 typedef struct {
-    bmp_error_t (*init)(uint8_t* cache, uint32_t len);
-    void (*write)(uint32_t addr, uint16_t data);
-    void (*write_raw_page)(uint32_t page, uint32_t* data);
-    void (*read_raw_data)(uint32_t addr, uint8_t* data, uint32_t len);
-    void (*erase)(void);
-} bmp_api_eeprom_t;
+    void (*write_dword)(uint32_t addr, uint32_t* data);
+    void (*write_page)(uint32_t page, uint32_t* data);
+    void (*read)(uint32_t addr, uint8_t* data, uint32_t len);
+    void (*erase_page)(void);
+} bmp_api_user_flash_t;
 
 #ifndef BMP_PAGE_SIZE
 #    define BMP_PAGE_SIZE 4096
@@ -425,7 +427,7 @@ typedef struct {
     bmp_api_ecs_t        ecs;
     bmp_api_cpu_temp_t   temp;
     bmp_api_timer_t      timer;
-    bmp_api_eeprom_t     eeprom;
+    bmp_api_user_flash_t flash;
     bmp_api_spi_slave_t  spis;
 } bmp_api_t;
 

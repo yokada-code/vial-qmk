@@ -10,6 +10,7 @@ bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
 void bmp_mode_transition_check(void);
 void bmp_keyboard_task(void);
 void bmp_init(void);
+int  bmp_dynamic_keymap_init(void);
 
 const bmp_api_config_t default_config;
 
@@ -31,8 +32,3 @@ extern int sleep_enter_counter;
 extern int reset_counter;
 void bmp_enter_sleep(void);
 void bmp_before_sleep(void);
-
-
-void tap_code_ex(uint16_t kc, keyevent_t keyevent);
-void register_code_ex(uint16_t kc, keyevent_t keyevent);
-void unregister_code_ex(uint16_t kc, keyevent_t keyevent);

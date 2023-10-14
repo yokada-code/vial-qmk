@@ -12,6 +12,8 @@
 #include "bmp_flash.h"
 #include "apidef.h"
 
+_Static_assert(EEPROM_SIZE == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
+
 #define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
 
 enum {

@@ -129,7 +129,9 @@ void protocol_setup(void) {
     host_set_driver(&driver);
 }
 
-void protocol_pre_init(void) {}
+void protocol_pre_init(void) {
+    bmp_dynamic_keymap_init();
+}
 
 void protocol_post_init(void) {
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);

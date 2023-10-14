@@ -47,34 +47,40 @@
 #    error Unknown total EEPROM size. Cannot derive maximum for dynamic keymaps.
 #endif
 
-#ifndef DYNAMIC_KEYMAP_EEPROM_MAX_ADDR
-#    define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR (TOTAL_EEPROM_BYTE_COUNT - 1)
-#endif
-
-#if DYNAMIC_KEYMAP_EEPROM_MAX_ADDR > (TOTAL_EEPROM_BYTE_COUNT - 1)
-#    pragma message STR(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR) " > " STR((TOTAL_EEPROM_BYTE_COUNT - 1))
-#    error DYNAMIC_KEYMAP_EEPROM_MAX_ADDR is configured to use more space than what is available for the selected EEPROM driver
-#endif
-
-// Due to usage of uint16_t check for max 65535
-#if DYNAMIC_KEYMAP_EEPROM_MAX_ADDR > 65535
-#    pragma message STR(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR) " > 65535"
-#    error DYNAMIC_KEYMAP_EEPROM_MAX_ADDR must be less than 65536
-#endif
 
 // If DYNAMIC_KEYMAP_EEPROM_ADDR not explicitly defined in config.h,
 #ifndef DYNAMIC_KEYMAP_EEPROM_ADDR
 #    define DYNAMIC_KEYMAP_EEPROM_ADDR DYNAMIC_KEYMAP_EEPROM_START
 #endif
 
-// Encoders are located right after the dynamic keymap
-#define VIAL_ENCODERS_EEPROM_ADDR (DYNAMIC_KEYMAP_EEPROM_ADDR + (DYNAMIC_KEYMAP_LAYER_COUNT * MATRIX_ROWS * MATRIX_COLS * 2))
-#define DYNAMIC_KEYMAP_ENCODER_EEPROM_ADDR VIAL_ENCODERS_EEPROM_ADDR
+typedef struct {
+    uint32_t encoder_eeprom_addr;
+    uint32_t encoder_size;
+    uint32_t vial_qmk_setting_eeprom_addr;
+    uint32_t vial_tap_dance_eeprom_addr;
+    uint32_t vial_combo_eeprom_addr;
+    uint32_t vial_key_override_eeprom_addr;
+    uint32_t vial_macro_eeprom_addr;
+    uint32_t vial_macro_eeprom_size;
+    uint8_t  matrix_rows;
+    uint8_t  matrix_cols;
+    uint8_t  layer;
+} dynamic_keymap_config_t;
+dynamic_keymap_config_t dynamic_keymap_config;
 
-#define VIAL_ENCODERS_SIZE (NUM_ENCODERS * DYNAMIC_KEYMAP_LAYER_COUNT * 2 * 2)
+#undef MATRIX_ROWS
+#undef MATRIX_COLS
+#undef DYNAMIC_KEYMAP_LAYER_COUNT
+#define MATRIX_ROWS dynamic_keymap_config.matrix_rows
+#define MATRIX_COLS dynamic_keymap_config.matrix_cols
+#define DYNAMIC_KEYMAP_LAYER_COUNT dynamic_keymap_config.layer
+
+// Encoders are located right after the dynamic keymap
+#define DYNAMIC_KEYMAP_ENCODER_EEPROM_ADDR dynamic_keymap_config.encoder_eeprom_addr
+#define VIAL_ENCODERS_SIZE dynamic_keymap_config.encoder_size
 
 // QMK settings area is just past encoders
-#define VIAL_QMK_SETTINGS_EEPROM_ADDR (VIAL_ENCODERS_EEPROM_ADDR + VIAL_ENCODERS_SIZE)
+#define VIAL_QMK_SETTINGS_EEPROM_ADDR dynamic_keymap_config.vial_combo_eeprom_addr
 
 #ifdef QMK_SETTINGS
 #include "qmk_settings.h"
@@ -84,7 +90,7 @@
 #endif
 
 // Tap-dance
-#define VIAL_TAP_DANCE_EEPROM_ADDR (VIAL_QMK_SETTINGS_EEPROM_ADDR + VIAL_QMK_SETTINGS_SIZE)
+#define VIAL_TAP_DANCE_EEPROM_ADDR dynamic_keymap_config.vial_tap_dance_eeprom_addr
 
 #ifdef VIAL_TAP_DANCE_ENABLE
 #define VIAL_TAP_DANCE_SIZE (sizeof(vial_tap_dance_entry_t) * VIAL_TAP_DANCE_ENTRIES)
@@ -93,7 +99,7 @@
 #endif
 
 // Combos
-#define VIAL_COMBO_EEPROM_ADDR (VIAL_TAP_DANCE_EEPROM_ADDR + VIAL_TAP_DANCE_SIZE)
+#define VIAL_COMBO_EEPROM_ADDR dynamic_keymap_config.vial_combo_eeprom_addr
 
 #ifdef VIAL_COMBO_ENABLE
 #define VIAL_COMBO_SIZE (sizeof(vial_combo_entry_t) * VIAL_COMBO_ENTRIES)
@@ -102,7 +108,7 @@
 #endif
 
 // Key overrides
-#define VIAL_KEY_OVERRIDE_EEPROM_ADDR (VIAL_COMBO_EEPROM_ADDR + VIAL_COMBO_SIZE)
+#define VIAL_KEY_OVERRIDE_EEPROM_ADDR dynamic_keymap_config.vial_key_override_eeprom_addr
 
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
 #define VIAL_KEY_OVERRIDE_SIZE (sizeof(vial_key_override_entry_t) * VIAL_KEY_OVERRIDE_ENTRIES)
@@ -112,25 +118,40 @@
 
 // Dynamic macro
 #ifndef DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR
-#    define DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR (VIAL_KEY_OVERRIDE_EEPROM_ADDR + VIAL_KEY_OVERRIDE_SIZE)
+#    define DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR dynamic_keymap_config.vial_macro_eeprom_addr
 #endif
-
-// Sanity check that dynamic keymaps fit in available EEPROM
-// If there's not 100 bytes available for macros, then something is wrong.
-// The keyboard should override DYNAMIC_KEYMAP_LAYER_COUNT to reduce it,
-// or DYNAMIC_KEYMAP_EEPROM_MAX_ADDR to increase it, *only if* the microcontroller has
-// more than the default.
-_Static_assert(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR >= DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + 100, "Dynamic keymaps are configured to use more EEPROM than is available.");
 
 // Dynamic macros are stored after the keymaps and use what is available
 // up to and including DYNAMIC_KEYMAP_EEPROM_MAX_ADDR.
-#ifndef DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE
-#    define DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE (DYNAMIC_KEYMAP_EEPROM_MAX_ADDR - DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + 1)
-#endif
+#define DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE dynamic_keymap_config.vial_macro_eeprom_size
 
 #ifndef DYNAMIC_KEYMAP_MACRO_DELAY
 #    define DYNAMIC_KEYMAP_MACRO_DELAY TAP_CODE_DELAY
 #endif
+
+#include "apidef.h"
+_Static_assert(TOTAL_EEPROM_BYTE_COUNT == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
+int bmp_dynamic_keymap_init(void) {
+    const bmp_api_config_t *config                      = BMPAPI->app.get_config();
+    dynamic_keymap_config.matrix_rows                   = config->matrix.rows;
+    dynamic_keymap_config.matrix_cols                   = config->matrix.cols;
+    dynamic_keymap_config.layer                         = config->matrix.layer;
+    dynamic_keymap_config.encoder_eeprom_addr           = DYNAMIC_KEYMAP_EEPROM_ADDR + (config->matrix.layer * config->matrix.rows * config->matrix.cols * 2);
+    dynamic_keymap_config.encoder_size                  = 2 * DYNAMIC_KEYMAP_LAYER_COUNT * sizeof(config->encoder) / sizeof(config->encoder[0]);
+    dynamic_keymap_config.vial_qmk_setting_eeprom_addr  = dynamic_keymap_config.encoder_eeprom_addr + dynamic_keymap_config.encoder_size;
+    dynamic_keymap_config.vial_tap_dance_eeprom_addr    = dynamic_keymap_config.vial_qmk_setting_eeprom_addr + VIAL_QMK_SETTINGS_SIZE;
+    dynamic_keymap_config.vial_combo_eeprom_addr        = dynamic_keymap_config.vial_tap_dance_eeprom_addr + VIAL_TAP_DANCE_SIZE;
+    dynamic_keymap_config.vial_key_override_eeprom_addr = dynamic_keymap_config.vial_combo_eeprom_addr + VIAL_COMBO_SIZE;
+    dynamic_keymap_config.vial_macro_eeprom_addr        = dynamic_keymap_config.vial_key_override_eeprom_addr + VIAL_KEY_OVERRIDE_SIZE;
+
+    if (dynamic_keymap_config.vial_macro_eeprom_addr >= TOTAL_EEPROM_BYTE_COUNT) {
+        return TOTAL_EEPROM_BYTE_COUNT - dynamic_keymap_config.vial_macro_eeprom_addr;
+    }
+
+    dynamic_keymap_config.vial_macro_eeprom_size = TOTAL_EEPROM_BYTE_COUNT - dynamic_keymap_config.vial_macro_eeprom_addr;
+
+    return 0;
+}
 
 uint8_t dynamic_keymap_get_layer_count(void) {
     return DYNAMIC_KEYMAP_LAYER_COUNT;

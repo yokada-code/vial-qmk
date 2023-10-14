@@ -7,6 +7,7 @@
 #include "matrix.h"
 #include "raw_hid.h"
 #include "keyboard.h"
+#include "rgblight.h"
 
 // TMK headers
 #include "host_driver.h"
@@ -38,8 +39,7 @@ void    send_extra(report_extra_t *report);
 
 /* host struct */
 host_driver_t driver = {keyboard_leds, send_keyboard, send_mouse, send_extra};
-
-// TODO: bmp
+const bmp_api_config_t *bmp_config;
 
 const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                          .mode        = BMP_DEFAULT_MODE == 0   ? SINGLE
@@ -76,6 +76,13 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
+bmp_error_t nus_rcv_callback(const uint8_t *dat, uint32_t len) {
+    if (len == sizeof(rgblight_syncinfo_t)) {
+        rgblight_update_sync((rgblight_syncinfo_t *)dat, false);
+    }
+    return BMP_OK;
+}
+
 int bmp_validate_config(const bmp_api_config_t *config) {
     if (config->version != CONFIG_VERSION                       //
         || config->matrix.rows > 32 || config->matrix.cols > 32 //
@@ -101,18 +108,21 @@ void bmp_init(void) {
     is_safe_mode_ = (BMPAPI->app.init() > 0);
 
     bmp_vial_data_init();
-    const bmp_api_config_t *config = &flash_vial_data.bmp_config;
-    if (bmp_validate_config(config) || BMPAPI->app.set_config(config)) {
-        config = &default_config;
-        BMPAPI->app.set_config(config);
+    bmp_config = &flash_vial_data.bmp_config;
+    if (bmp_validate_config(bmp_config) || BMPAPI->app.set_config(bmp_config)) {
+        bmp_config = &default_config;
+        BMPAPI->app.set_config(bmp_config);
     }
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);
     BMPAPI->usb.set_raw_receive_cb(bmp_raw_hid_receive);
+    if (bmp_config->mode == SPLIT_SLAVE) {
+        BMPAPI->ble.set_nus_rcv_cb(nus_rcv_callback);
+    }
 
-    BMPAPI->usb.init(config, false);
-    BMPAPI->ble.init(config);
+    BMPAPI->usb.init(bmp_config, false);
+    BMPAPI->ble.init(bmp_config);
     BMPAPI->logger.info("usb init");
     cli_init();
 
@@ -136,8 +146,9 @@ void protocol_pre_init(void) {
 }
 
 void protocol_post_init(void) {
-    const bmp_api_config_t* config = BMPAPI->app.get_config();
-    bmp_indicator_init(config->reserved[1]);
+    rgblight_set_clipping_range(0, bmp_config->led.num);
+    rgblight_set_effect_range(0, bmp_config->led.num);
+    bmp_indicator_init(bmp_config->reserved[1]);
 
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
@@ -148,6 +159,13 @@ void protocol_pre_task(void) {
 }
 
 void protocol_post_task(void) {
+    if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
+        static rgblight_syncinfo_t rgblight_sync;
+        rgblight_get_syncinfo(&rgblight_sync);
+        BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
+        rgblight_clear_change_flags();
+    }
+
     BMPAPI->usb.process();
     cli_exec();
     bmp_mode_transition_check();

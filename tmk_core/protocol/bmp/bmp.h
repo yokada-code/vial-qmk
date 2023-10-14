@@ -22,11 +22,7 @@ void bmp_via_receive_cb(uint8_t *data, uint8_t length,
                                             uint8_t        length));
 
 bool is_safe_mode(void);
-void eeprom_get_buffer_addr(
-    uint8_t **buf,
-    uint32_t *len);  // eeprom emulation for ble micro pro
-
-bool process_record_user_bmp(uint16_t keycode, keyrecord_t *record);
+bool process_record_bmp(uint16_t keycode, keyrecord_t *record);
 
 extern int sleep_enter_counter;
 extern int reset_counter;

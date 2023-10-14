@@ -158,6 +158,7 @@ typedef struct {
     bmp_api_encoder_config_t encoder[4];
     uint8_t                  reserved[8];
 } bmp_api_config_t;
+#define BMP_API_CONFIG_SIZE sizeof(bmp_api_config_t)
 
 typedef struct {
     uint8_t modfier;

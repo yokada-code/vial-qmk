@@ -74,6 +74,19 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
+int bmp_validate_config(const bmp_api_config_t *config) {
+    if (config->version != CONFIG_VERSION                       //
+        || config->matrix.rows > 32 || config->matrix.cols > 32 //
+        || config->matrix.device_rows > config->matrix.rows     //
+        || config->matrix.device_cols > config->matrix.cols     //
+        || config->mode >= WEBNUS_CONFIG                        //
+
+    ) {
+        return 1;
+    }
+    return 0;
+}
+
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {
         BMPAPI->bootloader_jump();
@@ -84,11 +97,12 @@ void bmp_init(void) {
 
     is_safe_mode_ = (BMPAPI->app.init() > 0);
 
-    // start in safe mode
-    const bmp_api_config_t *config = &default_config;
-    BMPAPI->app.set_config(&default_config);
-
     bmp_vial_data_init();
+    const bmp_api_config_t *config = &flash_vial_data.bmp_config;
+    if (bmp_validate_config(config) || BMPAPI->app.set_config(config)) {
+        config = &default_config;
+        BMPAPI->app.set_config(config);
+    }
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);

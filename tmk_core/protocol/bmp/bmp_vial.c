@@ -11,12 +11,8 @@
 #include "apidef.h"
 
 #define FLASH_PAGE_ID_VIAL 2
-typedef struct {
-    uint32_t len;
-    uint8_t  data[BMP_USER_FLASH_PAGE_SIZE - sizeof(uint32_t)];
-} flash_vial_data_t;
-_Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 
+_Static_assert(sizeof(flash_vial_data_t) >= BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 flash_vial_data_t flash_vial_data;
 
 void bmp_vial_data_init(void) {
@@ -31,6 +27,16 @@ void bmp_vial_data_init(void) {
         flash_erase_page(FLASH_PAGE_ID_VIAL);
         flash_write_page(FLASH_PAGE_ID_VIAL, (uint32_t *)&flash_vial_data);
     }
+}
+
+const bmp_api_config_t *bmp_vial_get_config(void) {
+    return &flash_vial_data.bmp_config;
+}
+
+void bmp_vial_set_config(void) {
+    // Write to flash
+    flash_erase_page(FLASH_PAGE_ID_VIAL);
+    flash_write_page(FLASH_PAGE_ID_VIAL, (uint32_t *)&flash_vial_data);
 }
 
 static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {

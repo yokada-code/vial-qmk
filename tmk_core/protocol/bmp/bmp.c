@@ -52,6 +52,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .cols            = MATRIX_COLS_DEFAULT,
                                                  .device_rows     = THIS_DEVICE_ROWS,
                                                  .device_cols     = THIS_DEVICE_COLS,
+                                                 .layer           = 4,
                                                  .debounce        = 1,
                                                  .diode_direction = DIODE_DIRECTION == ROW2COL ? 1 : 0,
                                                  .row_pins        = MATRIX_ROW_PINS,
@@ -79,6 +80,7 @@ int bmp_validate_config(const bmp_api_config_t *config) {
         || config->matrix.rows > 32 || config->matrix.cols > 32 //
         || config->matrix.device_rows > config->matrix.rows     //
         || config->matrix.device_cols > config->matrix.cols     //
+        || config->matrix.layer > 32 || config->matrix.layer < 1
         || config->mode >= WEBNUS_CONFIG                        //
 
     ) {

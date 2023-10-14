@@ -129,6 +129,7 @@ typedef struct {
     uint8_t cols;
     uint8_t device_rows;
     uint8_t device_cols;
+    uint8_t layer;
     uint8_t debounce;
     uint8_t is_left_hand;
     uint8_t diode_direction;

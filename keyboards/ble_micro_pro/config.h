@@ -12,8 +12,6 @@
 #define BMP_DEFAULT_MODE SINGLE
 
 /* key matrix size */
-#define MATRIX_ROWS 1
-#define MATRIX_COLS 19
 
 #define MATRIX_ROW_PINS \
     { 33 }

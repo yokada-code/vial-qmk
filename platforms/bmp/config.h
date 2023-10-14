@@ -3,3 +3,8 @@
 #pragma once
 
 #define EEPROM_SIZE 2048
+#undef MATRIX_ROWS
+#define MATRIX_ROWS 32
+#undef MATRIX_COLS
+#define MATRIX_COLS 32
+#define DYNAMIC_KEYMAP_LAYER_COUNT 32

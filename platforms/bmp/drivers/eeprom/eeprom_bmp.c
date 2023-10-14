@@ -9,9 +9,8 @@
 #include "wait.h"
 #include "print.h"
 
+#include "bmp_flash.h"
 #include "apidef.h"
-
-// TODO: bmp
 
 #define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
 
@@ -40,48 +39,8 @@ static flash_page_control_t flash_control;
 static uint32_t             log_write_idx;
 static const uint32_t       control_log_max = sizeof(flash_control.log) / sizeof(flash_control.log[0]);
 
-static inline void flash_write_dword(uint32_t addr, uint32_t *data) {
-    int retry = 3;
-    int res   = 0;
-    while (1) {
-        res = BMPAPI->flash.write_dword(addr, data);
-        if (res == 0 || --retry == 0) {
-            break;
-        }
-        wait_ms(10);
-    }
-}
-
-static inline void flash_write_page(uint32_t page, uint32_t *data) {
-    int retry = 3;
-    int res   = 0;
-    while (1) {
-        BMPAPI->flash.write_page(page, data);
-        if (res == 0 || --retry == 0) {
-            break;
-        }
-        wait_ms(10);
-    }
-}
-
-static inline void flash_read(uint32_t addr, uint8_t *data, uint32_t len) {
-    BMPAPI->flash.read(addr, data, len);
-}
-
-static inline void flash_erase_page(uint32_t page) {
-    int retry = 3;
-    int res   = 0;
-    while (1) {
-        BMPAPI->flash.erase_page(page);
-        if (res == 0 || --retry == 0) {
-            break;
-        }
-        wait_ms(10);
-    }
-}
-
-static void reset_flash_pages(void) {
-    printf("Reset flash pages\n");
+static void truncate_flash_pages(void) {
+    printf("Truncate flash pages\n");
     // Erase data
     flash_erase_page(FLASH_PAGE_ID_DATA);
     // Write data
@@ -117,12 +76,12 @@ void eeprom_driver_init(void) {
         // printf("read %ld log\n", log_write_idx);
     } else {
         // printf("magic %lx\n", flash_control.magic);
-        reset_flash_pages();
+        truncate_flash_pages();
     }
 }
 
 void eeprom_driver_erase(void) {
-    reset_flash_pages();
+    truncate_flash_pages();
     // flash_erase_page(FLASH_PAGE_ID_CONTROL);
     // flash_erase_page(FLASH_PAGE_ID_DATA);
 }
@@ -137,7 +96,7 @@ static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
     }
 
     if (log_write_idx >= control_log_max) {
-        reset_flash_pages();
+        truncate_flash_pages();
     }
 
     if (*(uint16_t *)&flash_data.data[addr] == data) {
@@ -149,7 +108,7 @@ static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
 
     if (flash_control.log[log_write_idx].addr != 0xffff || flash_control.log[log_write_idx].data != 0xffff) {
         // printf("%04x, %04x\n", flash_control.log[log_write_idx].addr, flash_control.log[log_write_idx].data);
-        reset_flash_pages();
+        truncate_flash_pages();
     }
 
     flash_control.log[log_write_idx].addr = addr;

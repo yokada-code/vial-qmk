@@ -6,6 +6,7 @@
 #include "vial_generated_keyboard_definition.h"
 
 #include "bmp_vial.h"
+#include "bmp_flash.h"
 #include "raw_hid.h"
 #include "apidef.h"
 
@@ -25,8 +26,10 @@ void bmp_vial_data_init(void) {
         // Load default data
         flash_vial_data.len = sizeof(keyboard_definition);
         memcpy(flash_vial_data.data, keyboard_definition, sizeof(keyboard_definition));
-        // Erase flash
+
         // Write to flash
+        flash_erase_page(FLASH_PAGE_ID_VIAL);
+        flash_write_page(FLASH_PAGE_ID_VIAL, (uint32_t *)&flash_vial_data);
     }
 }
 

@@ -30,7 +30,7 @@
         }
     },
     "rgblight": {
-        "led_count": 128
+        "led_count": 127
     },
     "ws2812": {
         "pin": 255

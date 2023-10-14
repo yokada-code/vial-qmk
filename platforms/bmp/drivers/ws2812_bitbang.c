@@ -2,6 +2,8 @@
 #include "ws2812.h"
 #include "apidef.h"
 
+_Static_assert(sizeof(LED_TYPE) == sizeof(bmp_api_led_t), "Invalid size");
+
 void ws2812_init(void) {}
 
 // Setleds for standard RGB

@@ -61,7 +61,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                              },
                                          .param_peripheral = {60, 30, 7},
                                          .param_central    = {60, 30, 7},
-                                         .led              = {.pin = WS2812_DI_PIN, .num = RGBLED_NUM_DEFAULT},
+                                         .led              = {.pin = WS2812_DI_PIN, .num = 1},
 #ifdef CONFIG_RESERVED
                                          .reserved = CONFIG_RESERVED
 #endif
@@ -84,12 +84,13 @@ bmp_error_t nus_rcv_callback(const uint8_t *dat, uint32_t len) {
 }
 
 int bmp_validate_config(const bmp_api_config_t *config) {
-    if (config->version != CONFIG_VERSION                       //
-        || config->matrix.rows > 32 || config->matrix.cols > 32 //
-        || config->matrix.device_rows > config->matrix.rows     //
-        || config->matrix.device_cols > config->matrix.cols     //
-        || config->matrix.layer > 32 || config->matrix.layer < 1
-        || config->mode >= WEBNUS_CONFIG                        //
+    if (config->version != CONFIG_VERSION                        //
+        || config->matrix.rows > 32 || config->matrix.cols > 32  //
+        || config->matrix.device_rows > config->matrix.rows      //
+        || config->matrix.device_cols > config->matrix.cols      //
+        || config->matrix.layer > 32 || config->matrix.layer < 1 //
+        || config->mode >= WEBNUS_CONFIG                         //
+        || config->led.num > RGBLED_NUM                          //
 
     ) {
         return 1;
@@ -133,7 +134,7 @@ void bmp_init(void) {
 static bool do_keyboard_task = false;
 void        bmp_main_task(void *_) {
     do_keyboard_task = true;
-    bmp_indicator_task(MAINTASK_INTERVAL);
+    // bmp_indicator_task(MAINTASK_INTERVAL);
 }
 
 void protocol_setup(void) {
@@ -159,12 +160,12 @@ void protocol_pre_task(void) {
 }
 
 void protocol_post_task(void) {
-    if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
-        static rgblight_syncinfo_t rgblight_sync;
-        rgblight_get_syncinfo(&rgblight_sync);
-        BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
-        rgblight_clear_change_flags();
-    }
+    // if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
+    //     static rgblight_syncinfo_t rgblight_sync;
+    //     rgblight_get_syncinfo(&rgblight_sync);
+    //     BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
+    //     rgblight_clear_change_flags();
+    // }
 
     BMPAPI->usb.process();
     cli_exec();

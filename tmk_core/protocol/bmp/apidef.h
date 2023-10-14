@@ -395,10 +395,10 @@ typedef struct {
 } bmp_api_timer_t;
 
 typedef struct {
-    void (*write_dword)(uint32_t addr, uint32_t* data);
-    void (*write_page)(uint32_t page, uint32_t* data);
+    int  (*write_dword)(uint32_t addr, uint32_t* data);
+    int  (*write_page)(uint32_t page, uint32_t* data);
     void (*read)(uint32_t addr, uint8_t* data, uint32_t len);
-    void (*erase_page)(void);
+    int  (*erase_page)(uint32_t page);
 } bmp_api_user_flash_t;
 
 #ifndef BMP_PAGE_SIZE

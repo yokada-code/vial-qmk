@@ -31,6 +31,7 @@ static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJEC
 static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"reset", usrcmd_reset, "Reset system"},
@@ -40,6 +41,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"show", usrcmd_bonding_information, "Show bonded devices"},
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
+                                            {"dump", usrcmd_dump_memory, "Dump memory"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -210,6 +212,37 @@ static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usr
         }
     } else {
         printf("Set debug option [on|off]\r\n");
+    }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[16];
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        uint32_t addr = (uint32_t)strtol(arg, NULL, 16);
+        uint8_t* p = (uint8_t*)addr;
+        char* pstr = (char*)addr;
+        if ((addr > 0x100000) && (addr < 0x20000000 || addr > 0x20040000))
+        {
+            printf("invalid addr\r\n");
+            return 0;
+        }
+        for(int i=0; i<16; i++){
+            for(int j=0; j<8; j++){
+                printf("%02x ", *p++);
+            }
+            printf("  ");
+            for(int j=0; j<8; j++){
+                if (*pstr >= 0x20 && *pstr <= 0x7e) {
+                    printf("%c", *pstr);
+                } else {
+                    printf(".");
+                }
+                pstr++;
+            }
+            printf("\r\n");
+        }
     }
     return 0;
 }

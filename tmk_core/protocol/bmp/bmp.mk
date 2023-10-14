@@ -4,6 +4,7 @@ OPT_DEFS += -UNO_DEBUG
 
 SRC += $(BMP_DIR)/gcc_startup_nrf52840.S
 SRC += $(BMP_DIR)/bmp.c
+SRC += $(BMP_DIR)/bmp_vial.c
 SRC += $(BMP_DIR)/state_controller.c
 SRC += $(BMP_DIR)/host_driver.c
 SRC += $(BMP_DIR)/matrix/matrix.c

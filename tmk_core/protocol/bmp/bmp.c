@@ -17,6 +17,7 @@
 #include "cli.h"
 #include "bmp.h"
 #include "state_controller.h"
+#include "bmp_vial.h"
 
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
@@ -73,19 +74,6 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
-
-void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
-    static uint8_t via_data[32];
-    if (len > sizeof(via_data) + 1) {
-        printf("<raw_hid>Too large packet");
-        return;
-    }
-
-    memcpy(via_data, data, len - 1);
-
-    raw_hid_receive(via_data, len - 1);
-}
-
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {
         BMPAPI->bootloader_jump();
@@ -99,6 +87,8 @@ void bmp_init(void) {
     // start in safe mode
     const bmp_api_config_t *config = &default_config;
     BMPAPI->app.set_config(&default_config);
+
+    bmp_vial_data_init();
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);

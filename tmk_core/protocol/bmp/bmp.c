@@ -18,6 +18,7 @@
 #include "bmp.h"
 #include "state_controller.h"
 #include "bmp_vial.h"
+#include "bmp_indicator_led.h"
 
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
@@ -122,6 +123,7 @@ void bmp_init(void) {
 static bool do_keyboard_task = false;
 void        bmp_main_task(void *_) {
     do_keyboard_task = true;
+    bmp_indicator_task(MAINTASK_INTERVAL);
 }
 
 void protocol_setup(void) {
@@ -134,6 +136,9 @@ void protocol_pre_init(void) {
 }
 
 void protocol_post_init(void) {
+    const bmp_api_config_t* config = BMPAPI->app.get_config();
+    bmp_indicator_init(config->reserved[1]);
+
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
 }

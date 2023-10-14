@@ -8,6 +8,7 @@ SRC += $(BMP_DIR)/gcc_startup_nrf52840.S
 SRC += $(BMP_DIR)/bmp.c
 SRC += $(BMP_DIR)/bmp_vial.c
 SRC += $(BMP_DIR)/bmp_flash.c
+SRC += $(BMP_DIR)/bmp_indicator_led.c
 SRC += $(BMP_DIR)/dynamic_keymap.c
 SRC += $(BMP_DIR)/state_controller.c
 SRC += $(BMP_DIR)/host_driver.c

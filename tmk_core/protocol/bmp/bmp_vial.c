@@ -2,9 +2,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "print.h"
+#include "via.h"
 #include "vial.h"
 #include "vial_generated_keyboard_definition.h"
+#include "matrix.h"
 
+#include "bmp.h"
 #include "bmp_vial.h"
 #include "bmp_flash.h"
 #include "raw_hid.h"
@@ -41,31 +44,55 @@ void bmp_vial_set_config(void) {
 
 static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     bool _continue = true;
-    // Override vial protocol
-    if (msg[0] != 0xfe) {
-        return _continue;
+    if (msg[0] == id_get_keyboard_value && msg[1] == id_switch_matrix_state) {
+        _continue = false;
+        uint8_t i = 2;
+        for (uint8_t row = 0; row < bmp_config->matrix.rows; row++) {
+            matrix_row_t value = matrix_get_row(row);
+
+            if (bmp_config->matrix.cols > 24) {
+                msg[i++] = (value >> 24) & 0xFF;
+                if (i >= 32) break;
+            }
+
+            if (bmp_config->matrix.cols > 16) {
+                msg[i++] = (value >> 16) & 0xFF;
+                if (i >= 32) break;
+            }
+
+            if (bmp_config->matrix.cols > 8) {
+                msg[i++] = (value >> 8) & 0xFF;
+                if (i >= 32) break;
+            }
+
+            msg[i++] = value & 0xFF;
+            if (i >= 32) break;
+        }
     }
 
-    switch (msg[1]) {
-        case vial_get_size: {
-            _continue   = false;
-            uint32_t sz = flash_vial_data.len;
-            msg[0]      = sz & 0xFF;
-            msg[1]      = (sz >> 8) & 0xFF;
-            msg[2]      = (sz >> 16) & 0xFF;
-            msg[3]      = (sz >> 24) & 0xFF;
-            break;
-        }
+    // Override vial protocol
+    if (msg[0] != 0xfe) {
+        switch (msg[1]) {
+            case vial_get_size: {
+                _continue   = false;
+                uint32_t sz = flash_vial_data.len;
+                msg[0]      = sz & 0xFF;
+                msg[1]      = (sz >> 8) & 0xFF;
+                msg[2]      = (sz >> 16) & 0xFF;
+                msg[3]      = (sz >> 24) & 0xFF;
+                break;
+            }
 
-        case vial_get_def: {
-            _continue      = false;
-            uint32_t page  = msg[2] + (msg[3] << 8);
-            uint32_t start = page * VIAL_RAW_EPSIZE;
-            uint32_t end   = start + VIAL_RAW_EPSIZE;
-            if (end < start || start >= flash_vial_data.len) break;
-            if (end > flash_vial_data.len) end = flash_vial_data.len;
-            memcpy(msg, &flash_vial_data.data[start], end - start);
-            break;
+            case vial_get_def: {
+                _continue      = false;
+                uint32_t page  = msg[2] + (msg[3] << 8);
+                uint32_t start = page * VIAL_RAW_EPSIZE;
+                uint32_t end   = start + VIAL_RAW_EPSIZE;
+                if (end < start || start >= flash_vial_data.len) break;
+                if (end > flash_vial_data.len) end = flash_vial_data.len;
+                memcpy(msg, &flash_vial_data.data[start], end - start);
+                break;
+            }
         }
     }
 

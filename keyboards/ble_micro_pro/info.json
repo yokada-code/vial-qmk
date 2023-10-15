@@ -6,6 +6,36 @@
         "pid": "0x0000",
         "vid": "0x0000"
     },
+    "matrix_pins":{
+        "cols": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            22
+        ],
+        "rows":[33]
+    },
+    "encoder": {
+        "rotary": [
+            {
+                "pin_a": "LINE_PIN19",
+                "pin_b": "LINE_PIN20"
+            }
+        ]
+    },
     "layouts": {
         "LAYOUT": {
             "layout": [

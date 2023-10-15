@@ -143,8 +143,9 @@ typedef struct {
 } bmp_api_led_config_t;
 
 typedef struct {
-    uint8_t  pin[2];
-    uint8_t  step;
+    uint8_t  pin_a[8];
+    uint8_t  pin_b[8];
+    uint8_t  resolution[8];
 } bmp_api_encoder_config_t;
 
 typedef struct {
@@ -156,7 +157,7 @@ typedef struct {
     bmp_api_ble_conn_param_t param_peripheral;
     bmp_api_ble_conn_param_t param_central;  // for split master
     bmp_api_led_config_t     led;
-    bmp_api_encoder_config_t encoder[4];
+    bmp_api_encoder_config_t encoder;
     uint8_t                  reserved[8];
 } bmp_api_config_t;
 #define BMP_API_CONFIG_SIZE sizeof(bmp_api_config_t)

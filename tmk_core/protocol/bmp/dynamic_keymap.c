@@ -137,7 +137,7 @@ int bmp_dynamic_keymap_init(void) {
     dynamic_keymap_config.matrix_cols                   = config->matrix.cols;
     dynamic_keymap_config.layer                         = config->matrix.layer;
     dynamic_keymap_config.encoder_eeprom_addr           = DYNAMIC_KEYMAP_EEPROM_ADDR + (config->matrix.layer * config->matrix.rows * config->matrix.cols * 2);
-    dynamic_keymap_config.encoder_size                  = 2 * DYNAMIC_KEYMAP_LAYER_COUNT * sizeof(config->encoder) / sizeof(config->encoder[0]);
+    dynamic_keymap_config.encoder_size                  = 2 * DYNAMIC_KEYMAP_LAYER_COUNT * sizeof(config->encoder.pin_a) / sizeof(config->encoder.pin_a[0]);
     dynamic_keymap_config.vial_qmk_setting_eeprom_addr  = dynamic_keymap_config.encoder_eeprom_addr + dynamic_keymap_config.encoder_size;
     dynamic_keymap_config.vial_tap_dance_eeprom_addr    = dynamic_keymap_config.vial_qmk_setting_eeprom_addr + VIAL_QMK_SETTINGS_SIZE;
     dynamic_keymap_config.vial_combo_eeprom_addr        = dynamic_keymap_config.vial_tap_dance_eeprom_addr + VIAL_TAP_DANCE_SIZE;

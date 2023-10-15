@@ -3,6 +3,7 @@ SRC += $(PLATFORM_COMMON_DIR)/transport.c
 SRC += $(PLATFORM_COMMON_DIR)/drivers/eeprom/eeprom_bmp.c
 
 CONFIG_H += $(PLATFORM_COMMON_DIR)/config.h
+POST_CONFIG_H += $(PLATFORM_COMMON_DIR)/post_config.h
 
 UF2_FAMILY = NRF52840
 

@@ -12,7 +12,8 @@ void bmp_keyboard_task(void);
 void bmp_init(void);
 int  bmp_dynamic_keymap_init(void);
 
-const bmp_api_config_t default_config;
+extern const bmp_api_config_t default_config;
+extern const bmp_api_config_t *bmp_config;
 
 const char *bmp_get_version_info(void);
 bool        is_safe_mode(void);

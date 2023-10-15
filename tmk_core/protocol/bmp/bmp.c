@@ -20,6 +20,7 @@
 #include "state_controller.h"
 #include "bmp_vial.h"
 #include "bmp_indicator_led.h"
+#include "eeprom_bmp.h"
 
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
@@ -154,6 +155,9 @@ void protocol_post_init(void) {
     rgblight_set_clipping_range(0, bmp_config->led.num);
     rgblight_set_effect_range(0, bmp_config->led.num);
     bmp_indicator_init(bmp_config->reserved[1]);
+
+    eeprom_bmp_flush();
+    eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_WRITE_THROUGH);
 
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);

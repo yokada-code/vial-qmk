@@ -22,7 +22,7 @@ void flash_write_page(uint32_t page, uint32_t *data) {
     int retry = 3;
     int res   = 0;
     while (1) {
-        BMPAPI->flash.write_page(page, data);
+        res = BMPAPI->flash.write_page(page, data);
         if (res == 0 || --retry == 0) {
             break;
         }
@@ -38,7 +38,7 @@ void flash_erase_page(uint32_t page) {
     int retry = 3;
     int res   = 0;
     while (1) {
-        BMPAPI->flash.erase_page(page);
+        res = BMPAPI->flash.erase_page(page);
         if (res == 0 || --retry == 0) {
             break;
         }

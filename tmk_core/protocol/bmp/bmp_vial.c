@@ -13,8 +13,6 @@
 #include "raw_hid.h"
 #include "apidef.h"
 
-#define FLASH_PAGE_ID_VIAL 2
-
 _Static_assert(sizeof(flash_vial_data_t) >= BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 flash_vial_data_t flash_vial_data;
 

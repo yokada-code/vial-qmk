@@ -130,7 +130,6 @@ dynamic_keymap_config_t dynamic_keymap_config;
 #endif
 
 #include "apidef.h"
-_Static_assert(TOTAL_EEPROM_BYTE_COUNT == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 int bmp_dynamic_keymap_init(void) {
     const bmp_api_config_t *config                      = BMPAPI->app.get_config();
     dynamic_keymap_config.matrix_rows                   = config->matrix.rows;

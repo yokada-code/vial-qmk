@@ -13,15 +13,8 @@
 #include "bmp_flash.h"
 #include "apidef.h"
 
-_Static_assert(EEPROM_SIZE == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
-
 #define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
 
-enum {
-    FLASH_PAGE_ID_CONTROL,
-    FLASH_PAGE_ID_DATA,
-    FLASH_PAGE_ID_VIAL,
-};
 typedef struct {
     uint32_t magic;
     struct {
@@ -33,9 +26,16 @@ typedef struct {
 _Static_assert(sizeof(flash_page_control_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 
 typedef struct {
-    uint8_t data[BMP_USER_FLASH_PAGE_SIZE];
+    union {
+        uint8_t data[BMP_USER_FLASH_PAGE_SIZE * 2];
+        struct {
+            uint8_t page0[BMP_USER_FLASH_PAGE_SIZE];
+            uint8_t page1[BMP_USER_FLASH_PAGE_SIZE];
+        };
+    };
 } flash_page_data_t;
-_Static_assert(sizeof(flash_page_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
+_Static_assert(sizeof(flash_page_data_t) == BMP_USER_FLASH_PAGE_SIZE * 2, "Invalid size");
+_Static_assert(sizeof(flash_page_data_t) == EEPROM_SIZE, "Invalid size");
 
 static flash_page_data_t     flash_data;
 static flash_page_control_t  flash_control;
@@ -47,14 +47,15 @@ static bool                  write_cache_dirty = false;
 static void truncate_flash_pages(void) {
     printf("Truncate flash pages\n");
     // Erase data
-    flash_erase_page(FLASH_PAGE_ID_DATA);
+    flash_erase_page(FLASH_PAGE_ID_DATA0);
+    flash_erase_page(FLASH_PAGE_ID_DATA1);
     // Write data
-    flash_write_page(FLASH_PAGE_ID_DATA, (uint32_t *)flash_data.data);
+    flash_write_page(FLASH_PAGE_ID_DATA0, (uint32_t *)flash_data.page0);
+    flash_write_page(FLASH_PAGE_ID_DATA1, (uint32_t *)flash_data.page1);
 
-    if (flash_control.magic == BMP_FLASH_DRIVER_MAGIC || log_write_idx != 0) {
+    if (flash_control.magic != BMP_FLASH_DRIVER_MAGIC || log_write_idx != 0) {
         // Erase write log
         flash_erase_page(FLASH_PAGE_ID_CONTROL);
-        wait_ms(10);
         memset(&flash_control, 0xff, sizeof(flash_control));
         log_write_idx = 0;
         // Write magic number
@@ -68,13 +69,13 @@ void eeprom_driver_init(void) {
     log_write_idx = 0;
 
     if (flash_control.magic == BMP_FLASH_DRIVER_MAGIC) {
-        flash_read(FLASH_PAGE_ID_DATA * BMP_USER_FLASH_PAGE_SIZE, (uint8_t *)&flash_data, BMP_USER_FLASH_PAGE_SIZE);
+        flash_read(FLASH_PAGE_ID_DATA0 * BMP_USER_FLASH_PAGE_SIZE, (uint8_t *)&flash_data, sizeof(flash_data));
 
         // Apply write log
         for (int ofs = 0; ofs < control_log_max; ofs++) {
             uint16_t addr = flash_control.log[ofs].addr;
             uint16_t data = flash_control.log[ofs].data;
-            if (addr > BMP_USER_FLASH_PAGE_SIZE - 2) {
+            if (addr > sizeof(flash_data) - 2) {
                 break;
             } else {
                 *(uint16_t *)(&flash_data.data[addr]) = data;
@@ -103,7 +104,7 @@ void eeprom_read_block(void *buf, const void *addr, size_t len) {
 }
 
 static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
-    if (addr > BMP_USER_FLASH_PAGE_SIZE - 2) {
+    if (addr > sizeof(flash_data) - 2) {
         return;
     }
 

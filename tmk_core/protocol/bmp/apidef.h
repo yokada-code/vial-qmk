@@ -12,13 +12,12 @@
 #define DEVICE_NAME_MAX_LEN 32
 
 #define BMP_USER_FLASH_PAGE_SIZE 4096
-#define BMP_USER_FLASH_PAGE_LEN 3
+#define BMP_USER_FLASH_PAGE_LEN 4
 
 typedef uint32_t bmp_api_matrix_row_t;
 typedef uint32_t bmp_api_matrix_col_t;
 
 typedef enum {
-    BMP_RECORD,
     BMP_PAIR_DEVICE_RECORD,
 } CONFIGURATION_RECORD_ID;
 
@@ -403,10 +402,6 @@ typedef struct {
     void (*read)(uint32_t addr, uint8_t* data, uint32_t len);
     int  (*erase_page)(uint32_t page);
 } bmp_api_user_flash_t;
-
-#ifndef BMP_PAGE_SIZE
-#    define BMP_PAGE_SIZE 4096
-#endif
 
 typedef struct {
     //////DO NOT CHANGE///////

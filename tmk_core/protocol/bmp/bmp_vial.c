@@ -19,10 +19,13 @@ flash_vial_data_t flash_vial_data;
 void bmp_vial_data_init(void) {
     const uint8_t lzma_header[] = {0xfd, 0x37, 0x71, 0x58, 0x5a};
     BMPAPI->flash.read(FLASH_PAGE_ID_VIAL * BMP_USER_FLASH_PAGE_SIZE, (void *)&flash_vial_data, BMP_USER_FLASH_PAGE_SIZE);
-    if (flash_vial_data.len > sizeof(flash_vial_data.data) || (memcmp(flash_vial_data.data, lzma_header, sizeof(lzma_header)) != 0)) {
+    if (flash_vial_data.len > sizeof(flash_vial_data.vial_data) || (memcmp(flash_vial_data.vial_data, lzma_header, sizeof(lzma_header)) != 0)) {
         // Load default data
         flash_vial_data.len = sizeof(keyboard_definition);
-        memcpy(flash_vial_data.data, keyboard_definition, sizeof(keyboard_definition));
+        memcpy(flash_vial_data.vial_data, keyboard_definition, sizeof(keyboard_definition));
+
+        uint8_t keyboard_uid[] = VIAL_KEYBOARD_UID;
+        memcpy(flash_vial_data.vial_uid, keyboard_uid, sizeof(flash_vial_data.vial_uid));
 
         // Write to flash
         flash_erase_page(FLASH_PAGE_ID_VIAL);
@@ -30,8 +33,8 @@ void bmp_vial_data_init(void) {
     }
 }
 
-const bmp_api_config_t *bmp_vial_get_config(void) {
-    return &flash_vial_data.bmp_config;
+const flash_vial_data_t *bmp_vial_get_config(void) {
+    return &flash_vial_data;
 }
 
 void bmp_vial_set_config(void) {
@@ -71,6 +74,21 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     // Override vial protocol
     if (msg[0] != 0xfe) {
         switch (msg[1]) {
+            case vial_get_keyboard_id: {
+                _continue = false;
+
+                memset(msg, 0, len);
+                msg[0] = VIAL_PROTOCOL_VERSION & 0xFF;
+                msg[1] = (VIAL_PROTOCOL_VERSION >> 8) & 0xFF;
+                msg[2] = (VIAL_PROTOCOL_VERSION >> 16) & 0xFF;
+                msg[3] = (VIAL_PROTOCOL_VERSION >> 24) & 0xFF;
+                memcpy(&msg[4], flash_vial_data.vial_uid, 8);
+#ifdef VIALRGB_ENABLE
+                msg[12] = 1; /* bit flag to indicate vialrgb is supported - so third-party apps don't have to query json */
+#endif
+                break;
+            }
+
             case vial_get_size: {
                 _continue   = false;
                 uint32_t sz = flash_vial_data.len;
@@ -88,7 +106,7 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
                 uint32_t end   = start + VIAL_RAW_EPSIZE;
                 if (end < start || start >= flash_vial_data.len) break;
                 if (end > flash_vial_data.len) end = flash_vial_data.len;
-                memcpy(msg, &flash_vial_data.data[start], end - start);
+                memcpy(msg, &flash_vial_data.vial_data[start], end - start);
                 break;
             }
         }

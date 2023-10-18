@@ -401,6 +401,7 @@ typedef struct {
     int  (*write_page)(uint32_t page, uint32_t* data);
     void (*read)(uint32_t addr, uint8_t* data, uint32_t len);
     int  (*erase_page)(uint32_t page);
+    const uint8_t* (*get_base_address)(void);
 } bmp_api_user_flash_t;
 
 typedef struct {

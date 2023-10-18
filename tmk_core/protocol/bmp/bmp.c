@@ -20,7 +20,16 @@
 #include "state_controller.h"
 #include "bmp_vial.h"
 #include "bmp_indicator_led.h"
+#include "bmp_flash.h"
 #include "eeprom_bmp.h"
+
+#ifndef DISABLE_MSC
+#    define DISABLE_MSC 0
+#endif
+
+#ifndef BMP_FORCE_SAFE_MODE
+#    define BMP_FORCE_SAFE_MODE false
+#endif
 
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
@@ -115,7 +124,7 @@ void bmp_init(void) {
 
     bmp_vial_data_init();
     bmp_config = &flash_vial_data.bmp_config;
-    if (bmp_validate_config(bmp_config) || BMPAPI->app.set_config(bmp_config)) {
+    if (bmp_validate_config(bmp_config) || BMPAPI->app.set_config(bmp_config) || BMP_FORCE_SAFE_MODE) {
         bmp_config = &default_config;
         BMPAPI->app.set_config(bmp_config);
     }
@@ -127,7 +136,7 @@ void bmp_init(void) {
         BMPAPI->ble.set_nus_rcv_cb(nus_rcv_callback);
     }
 
-    BMPAPI->usb.init(bmp_config, false);
+    BMPAPI->usb.init(bmp_config, DISABLE_MSC);
     BMPAPI->ble.init(bmp_config);
     BMPAPI->logger.info("usb init");
     cli_init();
@@ -139,7 +148,7 @@ void bmp_init(void) {
 static bool do_keyboard_task = false;
 void        bmp_main_task(void *_) {
     do_keyboard_task = true;
-    // bmp_indicator_task(MAINTASK_INTERVAL);
+    bmp_indicator_task(MAINTASK_INTERVAL);
 }
 
 void protocol_setup(void) {
@@ -149,6 +158,11 @@ void protocol_setup(void) {
 
 void protocol_pre_init(void) {
     bmp_dynamic_keymap_init();
+
+    BMPAPI->usb.create_file("CONFIG  BIN", BMPAPI->flash.get_base_address(), BMP_USER_FLASH_PAGE_SIZE * BMP_USER_FLASH_PAGE_LEN);
+
+    const flash_vial_data_t *vial = (flash_vial_data_t *)(BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL);
+    BMPAPI->usb.create_file("VIALJSONBIN", vial->vial_data, vial->len);
 }
 
 void protocol_post_init(void) {
@@ -168,12 +182,12 @@ void protocol_pre_task(void) {
 }
 
 void protocol_post_task(void) {
-    // if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
-    //     static rgblight_syncinfo_t rgblight_sync;
-    //     rgblight_get_syncinfo(&rgblight_sync);
-    //     BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
-    //     rgblight_clear_change_flags();
-    // }
+    if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
+        static rgblight_syncinfo_t rgblight_sync;
+        rgblight_get_syncinfo(&rgblight_sync);
+        BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
+        rgblight_clear_change_flags();
+    }
 
     BMPAPI->usb.process();
     cli_exec();

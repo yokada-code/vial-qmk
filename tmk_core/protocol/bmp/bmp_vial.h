@@ -7,13 +7,16 @@
 
 #include "apidef.h"
 
+#define BMP_VIAL_FLASH_PAGE_MAGIC 0xB05AFAAE
+
 typedef struct {
     uint32_t         magic;
     uint32_t         len;
-    uint8_t          vial_data[BMP_USER_FLASH_PAGE_SIZE - 2 * sizeof(uint32_t) - 8 - sizeof(bmp_api_config_t) - 64];
+    uint8_t          vial_data[BMP_USER_FLASH_PAGE_SIZE - 2 * sizeof(uint32_t) - 8 - sizeof(bmp_api_config_t) - 64 - sizeof(uint32_t)];
     uint8_t          vial_uid[8];
     bmp_api_config_t bmp_config;
     uint8_t          reserved[64];
+    uint32_t         crc16;       
 } flash_vial_data_t;
 
 extern flash_vial_data_t flash_vial_data;

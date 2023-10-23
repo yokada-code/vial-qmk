@@ -13,14 +13,12 @@
 #include "raw_hid.h"
 #include "apidef.h"
 
-#define BMP_VIAL_FLASH_PAGE_MAGIC 0xB05AFAAE
-
 _Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 _Static_assert(sizeof(bmp_api_config_t) == 192, "Invalid size");
 flash_vial_data_t flash_vial_data;
 
 void bmp_vial_data_init(void) {
-    const uint8_t lzma_header[] = {0xfd, 0x37, 0x71, 0x58, 0x5a};
+    const uint8_t lzma_header[] = {0xfd, 0x37, 0x7a, 0x58, 0x5a};
 
     BMPAPI->flash.read(FLASH_PAGE_ID_VIAL * BMP_USER_FLASH_PAGE_SIZE, (void *)&flash_vial_data, BMP_USER_FLASH_PAGE_SIZE);
 
@@ -36,10 +34,6 @@ void bmp_vial_data_init(void) {
 
         uint8_t keyboard_uid[] = VIAL_KEYBOARD_UID;
         memcpy(flash_vial_data.vial_uid, keyboard_uid, sizeof(flash_vial_data.vial_uid));
-
-        // Write to flash
-        flash_erase_page(FLASH_PAGE_ID_VIAL);
-        flash_write_page(FLASH_PAGE_ID_VIAL, (uint32_t *)&flash_vial_data);
     }
 }
 
@@ -47,7 +41,7 @@ const flash_vial_data_t *bmp_vial_get_config(void) {
     return &flash_vial_data;
 }
 
-void bmp_vial_set_config(void) {
+void bmp_vial_save_config(void) {
     // Write to flash
     flash_erase_page(FLASH_PAGE_ID_VIAL);
     flash_write_page(FLASH_PAGE_ID_VIAL, (uint32_t *)&flash_vial_data);

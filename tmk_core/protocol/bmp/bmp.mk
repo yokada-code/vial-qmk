@@ -6,6 +6,7 @@ SRC := $(filter-out $(QUANTUM_DIR)/dynamic_keymap.c, $(SRC))
 SRC := $(filter-out $(QUANTUM_DIR)/encoder.c, $(SRC))
 
 SRC += $(BMP_DIR)/gcc_startup_nrf52840.S
+SRC += $(BMP_DIR)/crc16.c
 SRC += $(BMP_DIR)/bmp.c
 SRC += $(BMP_DIR)/bmp_vial.c
 SRC += $(BMP_DIR)/bmp_flash.c

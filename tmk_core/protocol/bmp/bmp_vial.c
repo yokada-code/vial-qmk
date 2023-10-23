@@ -13,16 +13,26 @@
 #include "raw_hid.h"
 #include "apidef.h"
 
-_Static_assert(sizeof(flash_vial_data_t) >= BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
+#define BMP_VIAL_FLASH_PAGE_MAGIC 0xB05AFAAE
+
+_Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
+_Static_assert(sizeof(bmp_api_config_t) == 192, "Invalid size");
 flash_vial_data_t flash_vial_data;
 
 void bmp_vial_data_init(void) {
     const uint8_t lzma_header[] = {0xfd, 0x37, 0x71, 0x58, 0x5a};
+
     BMPAPI->flash.read(FLASH_PAGE_ID_VIAL * BMP_USER_FLASH_PAGE_SIZE, (void *)&flash_vial_data, BMP_USER_FLASH_PAGE_SIZE);
-    if (flash_vial_data.len > sizeof(flash_vial_data.vial_data) || (memcmp(flash_vial_data.vial_data, lzma_header, sizeof(lzma_header)) != 0)) {
+
+    if (flash_vial_data.magic != BMP_VIAL_FLASH_PAGE_MAGIC         //
+        || flash_vial_data.len > sizeof(flash_vial_data.vial_data) //
+        || (memcmp(flash_vial_data.vial_data, lzma_header, sizeof(lzma_header)) != 0)) {
         // Load default data
+        flash_vial_data.magic = BMP_VIAL_FLASH_PAGE_MAGIC;
         flash_vial_data.len = sizeof(keyboard_definition);
         memcpy(flash_vial_data.vial_data, keyboard_definition, sizeof(keyboard_definition));
+
+        flash_vial_data.bmp_config = default_config;
 
         uint8_t keyboard_uid[] = VIAL_KEYBOARD_UID;
         memcpy(flash_vial_data.vial_uid, keyboard_uid, sizeof(flash_vial_data.vial_uid));
@@ -72,7 +82,7 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     }
 
     // Override vial protocol
-    if (msg[0] != 0xfe) {
+    if (msg[0] == 0xfe) {
         switch (msg[1]) {
             case vial_get_keyboard_id: {
                 _continue = false;

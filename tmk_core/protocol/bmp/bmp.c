@@ -159,7 +159,8 @@ void protocol_setup(void) {
 void protocol_pre_init(void) {
     bmp_dynamic_keymap_init();
 
-    BMPAPI->usb.create_file("CONFIG  BIN", BMPAPI->flash.get_base_address(), BMP_USER_FLASH_PAGE_SIZE * BMP_USER_FLASH_PAGE_LEN);
+    BMPAPI->usb.create_file("EEPROM  BIN", BMPAPI->flash.get_base_address(), BMP_USER_FLASH_PAGE_SIZE * 2);
+    BMPAPI->usb.create_file("CONFIG  BIN", BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL, BMP_USER_FLASH_PAGE_SIZE);
 
     const flash_vial_data_t *vial = (flash_vial_data_t *)(BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL);
     BMPAPI->usb.create_file("VIALJSONBIN", vial->vial_data, vial->len);

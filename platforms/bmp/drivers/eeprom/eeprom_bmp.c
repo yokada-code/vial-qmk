@@ -81,7 +81,8 @@ void eeprom_driver_init(void) {
             if (addr > sizeof(flash_data) - 2) {
                 break;
             } else {
-                *(uint16_t *)(&flash_data.data[addr]) = data;
+                *(uint8_t *)(&flash_data.data[addr])     = data & 0xff;
+                *(uint8_t *)(&flash_data.data[addr + 1]) = (data >> 8) & 0xff;
             }
             log_write_idx++;
         }
@@ -111,7 +112,8 @@ static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
         return;
     }
 
-    if (*(uint16_t *)&flash_data.data[addr] == data) {
+    if ((*(uint8_t *)(&flash_data.data[addr]) == (data & 0xff)) //
+        && (*(uint8_t *)(&flash_data.data[addr + 1]) == ((data >> 8) & 0xff))) {
         // data is already written
         return;
     }
@@ -119,7 +121,9 @@ static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
     if (log_write_idx >= control_log_max) {
         truncate_flash_pages();
     }
-    *(uint16_t *)&flash_data.data[addr] = data;
+
+    *(uint8_t *)(&flash_data.data[addr])     = data & 0xff;
+    *(uint8_t *)(&flash_data.data[addr + 1]) = (data >> 8) & 0xff;
 
     if (write_cache_mode == EEPROM_BMP_CACHE_WRITE_THROUGH) {
         if ((log_write_idx >= control_log_max) //

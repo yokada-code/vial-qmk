@@ -17,6 +17,7 @@
 #include "apidef.h"
 #include "bmp.h"
 #include "bmp_host_driver.h"
+#include "eeprom_bmp.h"
 
 void              cli_puts(const char *str);
 static MICROSHELL microshell;
@@ -32,6 +33,7 @@ static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJ
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"reset", usrcmd_reset, "Reset system"},
@@ -42,6 +44,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
+                                            {"default", usrcmd_eeprom_default, "Save/Load default eeprom data"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -244,5 +247,19 @@ static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usro
             printf("\r\n");
         }
     }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[16];
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        if (strcmp(arg, "save") == 0) {
+            eeprom_bmp_save_default();
+        } else if (strcmp(arg, "load") == 0) {
+            eeprom_bmp_load_default();
+        }
+    }
+
     return 0;
 }

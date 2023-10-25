@@ -25,6 +25,9 @@
 #include "wait.h"
 #include <string.h>
 
+#include "bmp_flash.h"
+#include "eeprom_bmp.h"
+
 #ifdef VIA_ENABLE
 #    include "via.h"
 #    define DYNAMIC_KEYMAP_EEPROM_START (VIA_EEPROM_CONFIG_END)
@@ -292,46 +295,56 @@ void dynamic_keymap_reset(void) {
     vial_unlocked = 1;
 #endif
 
-    // Reset the keymaps in EEPROM to what is in flash.
-    for (int layer = 0; layer < DYNAMIC_KEYMAP_LAYER_COUNT; layer++) {
-        for (int row = 0; row < MATRIX_ROWS; row++) {
-            for (int column = 0; column < MATRIX_COLS; column++) {
-                dynamic_keymap_set_keycode(layer, row, column, keycode_at_keymap_location_raw(layer, row, column));
+    int load_default_failed = eeprom_bmp_load_default();
+    if (load_default_failed) {
+        // Reset the keymaps in EEPROM to what is in flash.
+        for (int layer = 0; layer < DYNAMIC_KEYMAP_LAYER_COUNT; layer++) {
+            for (int row = 0; row < MATRIX_ROWS; row++) {
+                for (int column = 0; column < MATRIX_COLS; column++) {
+                    dynamic_keymap_set_keycode(layer, row, column, keycode_at_keymap_location_raw(layer, row, column));
+                }
             }
-        }
 #ifdef ENCODER_MAP_ENABLE
-        for (int encoder = 0; encoder < NUM_ENCODERS; encoder++) {
-            dynamic_keymap_set_encoder(layer, encoder, true, keycode_at_encodermap_location_raw(layer, encoder, true));
-            dynamic_keymap_set_encoder(layer, encoder, false, keycode_at_encodermap_location_raw(layer, encoder, false));
-        }
+            for (int encoder = 0; encoder < NUM_ENCODERS; encoder++) {
+                dynamic_keymap_set_encoder(layer, encoder, true, keycode_at_encodermap_location_raw(layer, encoder, true));
+                dynamic_keymap_set_encoder(layer, encoder, false, keycode_at_encodermap_location_raw(layer, encoder, false));
+            }
 #endif // ENCODER_MAP_ENABLE
-    }
+        }
 
 #ifdef QMK_SETTINGS
-    qmk_settings_reset();
+        qmk_settings_reset();
 #endif
 
 #ifdef VIAL_TAP_DANCE_ENABLE
-    vial_tap_dance_entry_t td = { KC_NO, KC_NO, KC_NO, KC_NO, TAPPING_TERM };
-    for (size_t i = 0; i < VIAL_TAP_DANCE_ENTRIES; ++i) {
-        dynamic_keymap_set_tap_dance(i, &td);
-    }
+        vial_tap_dance_entry_t td = {KC_NO, KC_NO, KC_NO, KC_NO, TAPPING_TERM};
+        for (size_t i = 0; i < VIAL_TAP_DANCE_ENTRIES; ++i) {
+            dynamic_keymap_set_tap_dance(i, &td);
+        }
 #endif
 
 #ifdef VIAL_COMBO_ENABLE
-    vial_combo_entry_t combo = { 0 };
-    for (size_t i = 0; i < VIAL_COMBO_ENTRIES; ++i)
-        dynamic_keymap_set_combo(i, &combo);
+        vial_combo_entry_t combo = {0};
+        for (size_t i = 0; i < VIAL_COMBO_ENTRIES; ++i)
+            dynamic_keymap_set_combo(i, &combo);
 #endif
 
 #ifdef VIAL_KEY_OVERRIDE_ENABLE
-    vial_key_override_entry_t ko = { 0 };
-    ko.layers = ~0;
-    ko.options = vial_ko_option_activation_negative_mod_up | vial_ko_option_activation_required_mod_down | vial_ko_option_activation_trigger_down;
-    for (size_t i = 0; i < VIAL_KEY_OVERRIDE_ENTRIES; ++i)
-        dynamic_keymap_set_key_override(i, &ko);
+        vial_key_override_entry_t ko = {0};
+        ko.layers                    = ~0;
+        ko.options                   = vial_ko_option_activation_negative_mod_up | vial_ko_option_activation_required_mod_down | vial_ko_option_activation_trigger_down;
+        for (size_t i = 0; i < VIAL_KEY_OVERRIDE_ENTRIES; ++i)
+            dynamic_keymap_set_key_override(i, &ko);
 #endif
 
+        // reset macro
+        void *p   = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR);
+        void *end = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE);
+        while (p != end) {
+            eeprom_update_byte(p, 0);
+            ++p;
+        }
+    }
 #ifdef VIAL_ENABLE
     /* re-lock the keyboard */
     vial_unlocked = vial_unlocked_prev;
@@ -462,12 +475,12 @@ void dynamic_keymap_macro_set_buffer(uint16_t offset, uint16_t size, uint8_t *da
 }
 
 void dynamic_keymap_macro_reset(void) {
-    void *p   = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR);
-    void *end = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE);
-    while (p != end) {
-        eeprom_update_byte(p, 0);
-        ++p;
-    }
+    // void *p   = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR);
+    // void *end = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE);
+    // while (p != end) {
+    //     eeprom_update_byte(p, 0);
+    //     ++p;
+    // }
 }
 
 static uint16_t decode_keycode(uint16_t kc) {

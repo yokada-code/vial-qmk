@@ -8,8 +8,11 @@
 #include "eeprom_driver.h"
 #include "wait.h"
 #include "print.h"
-#include "eeprom_bmp.h"
+#include "eeconfig.h"
+#include "via.h"
+#include "version.h"
 
+#include "eeprom_bmp.h"
 #include "bmp_flash.h"
 #include "apidef.h"
 
@@ -183,4 +186,33 @@ void eeprom_bmp_flush(void) {
 
 void eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_MODE mode) {
     write_cache_mode = mode;
+}
+
+int eeprom_bmp_load_default(void) {
+    uint16_t magic = 0;
+    flash_read(FLASH_PAGE_ID_EEPROM_DEFAULT0 * BMP_USER_FLASH_PAGE_SIZE + (uint32_t)EECONFIG_MAGIC, (uint8_t *)&magic, 2);
+
+    if (magic != EECONFIG_MAGIC_NUMBER) {
+        return -1;
+    }
+
+    flash_read(FLASH_PAGE_ID_EEPROM_DEFAULT0 * BMP_USER_FLASH_PAGE_SIZE, (uint8_t *)&flash_data, sizeof(flash_data));
+
+    flash_data.data[VIA_EEPROM_MAGIC_ADDR]     = BUILD_ID & 0xff;
+    flash_data.data[VIA_EEPROM_MAGIC_ADDR + 1] = (BUILD_ID >> 8) & 0xff;
+    flash_data.data[VIA_EEPROM_MAGIC_ADDR + 2] = (BUILD_ID >> 16) & 0xff;
+
+    truncate_flash_pages();
+    write_cache_dirty = false;
+
+    return 0;
+}
+
+void eeprom_bmp_save_default(void) {
+    // Erase data
+    flash_erase_page(FLASH_PAGE_ID_EEPROM_DEFAULT0);
+    flash_erase_page(FLASH_PAGE_ID_EEPROM_DEFAULT1);
+    // Write data
+    flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT0, (uint32_t *)flash_data.page0);
+    flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT1, (uint32_t *)flash_data.page1);
 }

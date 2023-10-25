@@ -12,7 +12,7 @@
 #define DEVICE_NAME_MAX_LEN 32
 
 #define BMP_USER_FLASH_PAGE_SIZE 4096
-#define BMP_USER_FLASH_PAGE_LEN 4
+#define BMP_USER_FLASH_PAGE_LEN 6
 
 typedef uint32_t bmp_api_matrix_row_t;
 typedef uint32_t bmp_api_matrix_col_t;

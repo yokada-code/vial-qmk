@@ -10,6 +10,8 @@ enum {
     FLASH_PAGE_ID_DATA0,
     FLASH_PAGE_ID_DATA1,
     FLASH_PAGE_ID_VIAL,
+    FLASH_PAGE_ID_EEPROM_DEFAULT0,
+    FLASH_PAGE_ID_EEPROM_DEFAULT1,
 };
 
 void flash_write_dword(uint32_t addr, uint32_t *data);

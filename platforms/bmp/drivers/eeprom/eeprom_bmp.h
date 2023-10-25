@@ -10,3 +10,5 @@ typedef enum {
 
 void eeprom_bmp_flush(void);
 void eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_MODE mode);
+int  eeprom_bmp_load_default(void);
+void eeprom_bmp_save_default(void);

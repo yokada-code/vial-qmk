@@ -65,6 +65,8 @@ static void truncate_flash_pages(void) {
         flash_control.magic = BMP_FLASH_DRIVER_MAGIC;
         flash_write_dword(FLASH_PAGE_ID_CONTROL * BMP_USER_FLASH_PAGE_SIZE, &flash_control.magic);
     }
+
+    wait_ms(10);
 }
 
 void eeprom_driver_init(void) {
@@ -219,4 +221,6 @@ void eeprom_bmp_save_default(void) {
     // Write data
     flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT0, (uint32_t *)flash_data.page0);
     flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT1, (uint32_t *)flash_data.page1);
+
+    wait_ms(10);
 }

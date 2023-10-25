@@ -465,12 +465,9 @@ void dynamic_keymap_macro_get_buffer(uint16_t offset, uint16_t size, uint8_t *da
 void dynamic_keymap_macro_set_buffer(uint16_t offset, uint16_t size, uint8_t *data) {
     void *   target = (void *)(DYNAMIC_KEYMAP_MACRO_EEPROM_ADDR + offset);
     uint8_t *source = data;
-    for (uint16_t i = 0; i < size; i++) {
-        if (offset + i < DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE) {
-            eeprom_update_byte(target, *source);
-        }
-        source++;
-        target++;
+    if (offset < DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE) {
+        size = MIN(size, DYNAMIC_KEYMAP_MACRO_EEPROM_SIZE - offset);
+        eeprom_update_block(source, target, size);
     }
 }
 

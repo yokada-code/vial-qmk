@@ -128,17 +128,20 @@ static void bmp_flash_write_word(uint16_t data, uint32_t addr) {
     *(uint8_t *)(&flash_data.data[addr + 1]) = (data >> 8) & 0xff;
 
     if (write_cache_mode == EEPROM_BMP_CACHE_WRITE_THROUGH) {
-        if ((log_write_idx >= control_log_max) //
-            || (flash_control.log[log_write_idx].addr != 0xffff || flash_control.log[log_write_idx].data != 0xffff)) {
-            // printf("%04x, %04x\n", flash_control.log[log_write_idx].addr, flash_control.log[log_write_idx].data);
+        if ((log_write_idx >= control_log_max)                  //
+            || (flash_control.log[log_write_idx].addr != 0xffff //
+                || flash_control.log[log_write_idx].data != 0xffff)) {
+            // printf("Invalid write log found: %04lx, %04x, %04x\n", log_write_idx, //
+            //        flash_control.log[log_write_idx].addr,                         //
+            //        flash_control.log[log_write_idx].data);
             truncate_flash_pages();
+        } else {
+            flash_control.log[log_write_idx].addr = addr;
+            flash_control.log[log_write_idx].data = data;
+            // Write log
+            flash_write_dword(offsetof(flash_page_control_t, log) + log_write_idx * sizeof(uint32_t), (uint32_t *)&flash_control.log[log_write_idx]);
+            log_write_idx++;
         }
-
-        flash_control.log[log_write_idx].addr = addr;
-        flash_control.log[log_write_idx].data = data;
-        // Write log
-        flash_write_dword(offsetof(flash_page_control_t, log) + log_write_idx * sizeof(uint32_t), (uint32_t *)&flash_control.log[log_write_idx]);
-        log_write_idx++;
     } else {
         write_cache_dirty = true;
     }

@@ -21,8 +21,8 @@
 #include "bmp_vial.h"
 #include "bmp_indicator_led.h"
 #include "bmp_flash.h"
+#include "bmp_file.h"
 #include "eeprom_bmp.h"
-#include "crc16.h"
 
 #ifndef DISABLE_MSC
 #    define DISABLE_MSC 0
@@ -88,24 +88,18 @@ bool is_safe_mode(void) {
 }
 
 bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
-    static uint32_t offset = 0;
-    if (offset == 0 && (*(flash_vial_data_t *)dat).magic == BMP_VIAL_FLASH_PAGE_MAGIC) {
-        memcpy((void *)&flash_vial_data, dat, len);
-        offset += len;
-    } else if (offset >= BMP_USER_FLASH_PAGE_SIZE) {
-        offset = 0;
-    } else if (offset != 0) {
-        memcpy((void *)&flash_vial_data + offset, dat, len);
-        offset += len;
+    static uint32_t   offset    = 0;
+    static bmp_file_t file_type = BMP_FILE_NONE;
 
-        if (offset == BMP_USER_FLASH_PAGE_SIZE) {
-            // check crc and save to flash
-            uint16_t crc = crc16((const uint8_t *)&flash_vial_data, BMP_USER_FLASH_PAGE_SIZE - sizeof(flash_vial_data.crc16));
-            printf("crc received:%04lx calc:%04x\n", flash_vial_data.crc16, crc);
-            if (flash_vial_data.crc16 == crc) {
-                bmp_vial_save_config();
-            }
-        }
+    if (offset == 0) {
+        file_type = detect_file_type(dat, len);
+    }
+
+    bmp_file_res_t res = write_bmp_file(file_type, dat, offset, len);
+
+    if (res != BMP_FILE_CONTINUE) {
+        offset    = 0;
+        file_type = BMP_FILE_NONE;
     }
 
     return BMP_OK;

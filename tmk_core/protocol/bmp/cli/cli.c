@@ -17,6 +17,7 @@
 #include "apidef.h"
 #include "bmp.h"
 #include "bmp_host_driver.h"
+#include "bmp_file.h"
 #include "eeprom_bmp.h"
 #include "xmodem.h"
 
@@ -288,6 +289,18 @@ static void xmodem_complete_callback(void) {
 }
 
 static void packet_receive_callback(xmodem_packet_t *packet) {
+    static bmp_file_t xmodem_file_type;
+
+    if (packet->block_no == 1) {
+        xmodem_file_type = detect_file_type(packet->data, sizeof(packet->data));
+    }
+
+    bmp_file_res_t res = write_bmp_file(xmodem_file_type, packet->data,                //
+                                        sizeof(packet->data) * (packet->block_no - 1), //
+                                        sizeof(packet->data));
+    if (res != BMP_FILE_CONTINUE) {
+        xmodem_file_type = BMP_FILE_NONE;
+    }
 }
 
 static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {

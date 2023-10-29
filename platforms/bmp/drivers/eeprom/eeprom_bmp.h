@@ -3,6 +3,8 @@
 
 #pragma once
 
+#define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
+
 typedef enum {
     EEPROM_BMP_CACHE_WRITE_BACK,
     EEPROM_BMP_CACHE_WRITE_THROUGH,

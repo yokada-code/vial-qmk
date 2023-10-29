@@ -16,8 +16,6 @@
 #include "bmp_flash.h"
 #include "apidef.h"
 
-#define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
-
 typedef struct {
     uint32_t magic;
     struct {

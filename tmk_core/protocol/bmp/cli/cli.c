@@ -30,6 +30,7 @@ static MSCMD_USER_RESULT usrcmd_advertise(MSOPT *msopt, MSCMD_USER_OBJECT usrobj
 static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
@@ -41,6 +42,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"dis", usrcmd_disconnect, "Disconnect BLE"},
                                             {"sel", usrcmd_select_connection, "Select USB/BLE"},
                                             {"show", usrcmd_bonding_information, "Show bonded devices"},
+                                            {"del", usrcmd_delete_bonding, "Delete bonding information"},
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
@@ -183,6 +185,19 @@ static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJ
     }
     cli_puts("]}");
     microshell.uart_putc('\0');
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[4];
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        if (arg[0] >= '0' && arg[0] <= '9') {
+            BMPAPI->ble.delete_bond(arg[0] - '0');
+        }
+    } else {
+        BMPAPI->ble.delete_bond(255);
+    }
     return 0;
 }
 

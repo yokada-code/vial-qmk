@@ -44,6 +44,7 @@ static uint32_t              log_write_idx;
 static const uint32_t        control_log_max   = sizeof(flash_control.log) / sizeof(flash_control.log[0]);
 static EEPROM_BMP_CACHE_MODE write_cache_mode  = EEPROM_BMP_CACHE_WRITE_BACK;
 static bool                  write_cache_dirty = false;
+const uint8_t               *eeprom_cache      = (uint8_t *)&flash_data;
 
 static void truncate_flash_pages(void) {
     printf("Truncate flash pages\n");

@@ -3,12 +3,16 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #define BMP_FLASH_DRIVER_MAGIC 0xBEC52840
 
 typedef enum {
     EEPROM_BMP_CACHE_WRITE_BACK,
     EEPROM_BMP_CACHE_WRITE_THROUGH,
 } EEPROM_BMP_CACHE_MODE;
+
+extern const uint8_t *eeprom_cache;
 
 void eeprom_bmp_flush(void);
 void eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_MODE mode);

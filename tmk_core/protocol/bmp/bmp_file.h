@@ -8,7 +8,6 @@
 typedef enum {
     BMP_FILE_NONE,
     BMP_FILE_EEPROM,
-    BMP_FILE_DEFAULT,
     BMP_FILE_CONFIG,
 } bmp_file_t;
 

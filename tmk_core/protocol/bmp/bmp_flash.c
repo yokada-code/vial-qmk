@@ -14,7 +14,7 @@ void flash_write_dword(uint32_t addr, uint32_t *data) {
         if (res == 0 || --retry == 0) {
             break;
         }
-        wait_us(1000); // Do NOT call wait_ms here because wait_ms calls usb tasks recursively
+        wait_us(10000); // Do NOT call wait_ms here because wait_ms calls usb tasks recursively
         BMPAPI->app.process_task();
     }
 }
@@ -27,7 +27,7 @@ void flash_write_page(uint32_t page, uint32_t *data) {
         if (res == 0 || --retry == 0) {
             break;
         }
-        wait_us(1000);
+        wait_us(10000);
         BMPAPI->app.process_task();
     }
 }
@@ -44,7 +44,7 @@ void flash_erase_page(uint32_t page) {
         if (res == 0 || --retry == 0) {
             break;
         }
-        wait_us(1000);
+        wait_us(10000);
         BMPAPI->app.process_task();
     }
 }

@@ -93,9 +93,11 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
 
     if (offset == 0) {
         file_type = detect_file_type(dat, len);
+        printf("File type:%d\n", file_type);
     }
 
     bmp_file_res_t res = write_bmp_file(file_type, dat, offset, len);
+    offset += len;
 
     if (res != BMP_FILE_CONTINUE) {
         offset    = 0;
@@ -192,7 +194,7 @@ void protocol_setup(void) {
 void protocol_pre_init(void) {
     bmp_dynamic_keymap_init();
 
-    BMPAPI->usb.create_file("EEPROM  BIN", BMPAPI->flash.get_base_address(), BMP_USER_FLASH_PAGE_SIZE * 2);
+    BMPAPI->usb.create_file("EEPROM  BIN", eeprom_cache, EEPROM_SIZE);
     BMPAPI->usb.create_file("CONFIG  BIN", BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL, BMP_USER_FLASH_PAGE_SIZE);
     BMPAPI->usb.create_file("DEFAULT BIN", BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_EEPROM_DEFAULT0, BMP_USER_FLASH_PAGE_SIZE * 2);
 

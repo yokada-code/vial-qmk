@@ -18,6 +18,7 @@
 #include "bmp.h"
 #include "bmp_host_driver.h"
 #include "eeprom_bmp.h"
+#include "xmodem.h"
 
 void              cli_puts(const char *str);
 static MICROSHELL microshell;
@@ -35,6 +36,7 @@ static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrob
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"reset", usrcmd_reset, "Reset system"},
@@ -47,6 +49,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
                                             {"default", usrcmd_eeprom_default, "Save/Load default eeprom data"},
+                                            {"xmodem", usrcmd_start_xmodem, "Start XMODEM"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -275,6 +278,21 @@ static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT u
             eeprom_bmp_load_default();
         }
     }
+
+    return 0;
+}
+
+static void xmodem_complete_callback(void) {
+    printf("xmodem complete\n");
+    cli_app.func = NULL;
+}
+
+static void packet_receive_callback(xmodem_packet_t *packet) {
+}
+
+static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    xmodem_init(xmodem_complete_callback, packet_receive_callback);
+    cli_app.func = xmodem_task;
 
     return 0;
 }

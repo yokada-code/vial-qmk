@@ -28,6 +28,7 @@ SRC += $(BMP_DIR)/cli/microshell/core/mscore.c
 SRC += $(BMP_DIR)/cli/microshell/util/mscmd.c
 SRC += $(BMP_DIR)/cli/microshell/util/msopt.c
 SRC += $(BMP_DIR)/cli/microshell/util/ntlibc.c
+SRC += $(BMP_DIR)/cli/xmodem.c
 
 LDFLAGS += -L$(TMK_PATH)/$(BMP_DIR)
 

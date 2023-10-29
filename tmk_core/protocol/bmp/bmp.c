@@ -133,6 +133,19 @@ int bmp_validate_config(const bmp_api_config_t *config) {
     return 0;
 }
 
+void bmp_battery_check(void) {
+    uint16_t vcc_percent   = BMPAPI->app.get_vcc_percent();
+    int32_t  battery_level = 1;
+
+    if (vcc_percent > 70) {
+        battery_level = 3;
+    } else if (vcc_percent > 30) {
+        battery_level = 2;
+    }
+
+    bmp_indicator_set(INDICATOR_BATTERY, battery_level);
+}
+
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {
         BMPAPI->bootloader_jump();
@@ -161,6 +174,11 @@ void bmp_init(void) {
     BMPAPI->ble.init(bmp_config);
     BMPAPI->logger.info("usb init");
     cli_init();
+
+    if ((bmp_config->mode == SINGLE || bmp_config->mode == SPLIT_MASTER) //
+        && bmp_config->startup == 1) {
+        BMPAPI->ble.advertise(255);
+    }
 
     BMPAPI->usb.enable();
     BMPAPI->logger.info("usb enable");
@@ -198,6 +216,8 @@ void protocol_post_init(void) {
 
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
+
+    bmp_battery_check();
 }
 
 void protocol_pre_task(void) {

@@ -10,7 +10,7 @@
 #define THIS_DEVICE_COLS 19
 #define IS_LEFT_HAND  true
 #define BMP_DEFAULT_MODE SINGLE
-
+#define ACTION_DEBUG
 /* key matrix size */
 
 #define DIODE_DIRECTION COL2ROW

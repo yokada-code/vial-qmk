@@ -10,6 +10,7 @@ CFLAGS += -DGIT_DESCRIBE=$(GIT_DESCRIBE)
 CFLAGS += -DTARGET=$(TARGET)
 
 UF2_FAMILY = NRF52840
+NRFUTIL = nrfutil
 
 # Linker script selection.
 ##############################################################################
@@ -76,3 +77,10 @@ NM      = $(TOOLCHAIN)nm
 HEX     = $(OBJCOPY) -O $(FORMAT)
 EEP     =
 BIN     = $(OBJCOPY) -O binary
+
+
+zip: $(BUILD_DIR)/$(TARGET).bin
+	if ! type "nrfutil" > /dev/null 2>&1; then \
+		echo 'ERROR: nrfutil is not found'; exit 1;\
+	fi
+	$(NRFUTIL) pkg generate --debug-mode --hw-version 52 --sd-req 0xA9 --application $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).zip

@@ -191,6 +191,13 @@ void protocol_setup(void) {
     host_set_driver(&driver);
 }
 
+// clang-format off
+static const char bmp_version_info[] = "API version: " STR(API_VERSION) "\n"
+                                       "Config version: " STR(CONFIG_VERSION) "\n"
+                                       "Build from: " STR(GIT_DESCRIBE) "\n"
+                                       "Build Target: " STR(TARGET);
+// clang-format on
+
 void protocol_pre_init(void) {
     bmp_dynamic_keymap_init();
 
@@ -200,6 +207,7 @@ void protocol_pre_init(void) {
 
     const flash_vial_data_t *vial = (flash_vial_data_t *)(BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL);
     BMPAPI->usb.create_file("VIALJSONBIN", vial->vial_data, vial->len);
+    BMPAPI->usb.create_file("VERSION TXT", (uint8_t *)bmp_version_info, strlen(bmp_version_info));
 }
 
 void protocol_post_init(void) {

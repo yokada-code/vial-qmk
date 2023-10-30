@@ -5,6 +5,10 @@ SRC += $(PLATFORM_COMMON_DIR)/drivers/eeprom/eeprom_bmp.c
 CONFIG_H += $(PLATFORM_COMMON_DIR)/config.h
 POST_CONFIG_H += $(PLATFORM_COMMON_DIR)/post_config.h
 
+GIT_DESCRIBE = $(shell git describe --tags --long --dirty="\\*")
+CFLAGS += -DGIT_DESCRIBE=$(GIT_DESCRIBE)
+CFLAGS += -DTARGET=$(TARGET)
+
 UF2_FAMILY = NRF52840
 
 # Linker script selection.

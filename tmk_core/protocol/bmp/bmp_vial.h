@@ -8,6 +8,7 @@
 #include "apidef.h"
 
 #define BMP_VIAL_FLASH_PAGE_MAGIC 0xB05AFAAE
+#define VIAL_SUPPORT_VIA_VERSION 0x0009
 
 typedef struct {
     uint32_t         magic;
@@ -25,3 +26,4 @@ const flash_vial_data_t *bmp_vial_get_config(void);
 void                     bmp_vial_data_init(void);
 void                     bmp_raw_hid_receive(const uint8_t *data, uint8_t len);
 void                     bmp_vial_save_config(void);
+void                     bmp_set_vial_enable_flag(bool flag);

@@ -16,6 +16,7 @@
 _Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 _Static_assert(sizeof(bmp_api_config_t) == 192, "Invalid size");
 flash_vial_data_t flash_vial_data;
+bool              is_vial_enabled;
 
 void bmp_vial_data_init(void) {
     const uint8_t lzma_header[] = {0xfd, 0x37, 0x7a, 0x58, 0x5a};
@@ -49,7 +50,17 @@ void bmp_vial_save_config(void) {
 
 static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     bool _continue = true;
-    if (msg[0] == id_get_keyboard_value && msg[1] == id_switch_matrix_state) {
+
+    // Override VIA protocol version
+    if (msg[0] == id_get_protocol_version) {
+        const uint16_t via_version = is_vial_enabled ? VIAL_SUPPORT_VIA_VERSION : VIA_PROTOCOL_VERSION;
+        msg[1]                     = via_version >> 8;
+        msg[2]                     = via_version & 0xFF;
+
+        _continue = false;
+    }
+    // Override matrix test
+    else if (msg[0] == id_get_keyboard_value && msg[1] == id_switch_matrix_state) {
         _continue = false;
         uint8_t i = 2;
         for (uint8_t row = 0; row < bmp_config->matrix.rows; row++) {
@@ -74,12 +85,13 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
             if (i >= 32) break;
         }
     }
-
     // Override vial protocol
-    if (msg[0] == 0xfe) {
+    else if (msg[0] == 0xfe) {
         switch (msg[1]) {
             case vial_get_keyboard_id: {
                 _continue = false;
+
+                is_vial_enabled = true;
 
                 memset(msg, 0, len);
                 msg[0] = VIAL_PROTOCOL_VERSION & 0xFF;
@@ -135,4 +147,8 @@ void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
     if (pre_raw_hid_receive(via_data, len - 1)) {
         raw_hid_receive(via_data, len - 1);
     }
+}
+
+void bmp_set_vial_enable_flag(bool flag) {
+    is_vial_enabled = flag;
 }

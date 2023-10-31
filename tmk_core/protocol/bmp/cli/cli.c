@@ -20,6 +20,7 @@
 #include "bmp_file.h"
 #include "eeprom_bmp.h"
 #include "xmodem.h"
+#include "bmp_vial.h"
 
 void              cli_puts(const char *str);
 static MICROSHELL microshell;
@@ -38,6 +39,7 @@ static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usr
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"reset", usrcmd_reset, "Reset system"},
@@ -51,6 +53,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
                                             {"default", usrcmd_eeprom_default, "Save/Load default eeprom data"},
                                             {"xmodem", usrcmd_start_xmodem, "Start XMODEM"},
+                                            {"vial", usrcmd_enable_vial, "Enable/Disable vial"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -307,5 +310,23 @@ static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usr
     xmodem_init(xmodem_complete_callback, packet_receive_callback);
     cli_app.func = xmodem_task;
 
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[16];
+    if (msopt->argc >= 2) {
+        msopt_get_argv(msopt, 1, arg, sizeof(arg));
+        if (strcmp(arg, "on") == 0) {
+            bmp_set_vial_enable_flag(true);
+            printf("Enable vial protocol\n");
+            return 0;
+        } else if (strcmp(arg, "off") == 0) {
+            bmp_set_vial_enable_flag(false);
+            printf("Disable vial protocol (Support VIA protocol 0x0C)\n");
+            return 0;
+        }
+    }
+    printf("Usage: vial [on/off]");
     return 0;
 }

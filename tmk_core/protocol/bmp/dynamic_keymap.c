@@ -563,13 +563,31 @@ void dynamic_keymap_macro_send(uint8_t id) {
                     }
                 }
             } else if (data[1] == SS_DELAY_CODE) {
-                // For delay, decode the delay and wait_ms for that amount
-                uint8_t d0 = eeprom_read_byte(p++);
-                uint8_t d1 = eeprom_read_byte(p++);
-                if (d0 == 0 || d1 == 0)
-                    break;
-                // we cannot use 0 for these, need to subtract 1 and use 255 instead of 256 for delay calculation
-                int ms = (d0 - 1) + (d1 - 1) * 255;
+                // Check delay code type is VIA(0xC) or not
+                bool is_via = true;
+                int  ms     = 0;
+                for (int idx = 0; idx < 5; idx++) {
+                    uint8_t c = eeprom_read_byte(p + idx);
+                    if (c >= '0' && c <= '9') {
+                        ms = ms * 10 + c - '0';
+                    } else if (c == '|' && idx != 0) {
+                        p += idx + 1;
+                        break;
+                    } else {
+                        is_via = false;
+                        break;
+                    }
+                }
+
+                if (!is_via) {
+                    // For delay, decode the delay and wait_ms for that amount
+                    uint8_t d0 = eeprom_read_byte(p++);
+                    uint8_t d1 = eeprom_read_byte(p++);
+                    if (d0 == 0 || d1 == 0) break;
+                    // we cannot use 0 for these, need to subtract 1 and use 255 instead of 256 for delay calculation
+                    ms = (d0 - 1) + (d1 - 1) * 255;
+                }
+
                 while (ms--) wait_ms(1);
             }
         } else {

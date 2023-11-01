@@ -8,6 +8,7 @@
 #include "apidef.h"
 #include "bmp_custom_keycodes.h"
 #include "bmp_host_driver.h"
+#include "state_controller.h"
 
 bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
     if (record->event.pressed) {
@@ -34,6 +35,14 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
                 char str[16];
                 snprintf(str, sizeof(str), "%4dmV", BMPAPI->app.get_vcc_mv());
                 send_string(str);
+                return false;
+            }
+        }
+    }
+    else {
+        switch (keycode) {
+            case ENT_SLP: {
+                sleep_enter_counter = 10;
                 return false;
             }
         }

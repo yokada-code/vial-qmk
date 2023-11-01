@@ -26,5 +26,6 @@ enum bmp_custom_keycodes {
     DEL_ID7,          /* Delete bonding of PeerID 7           */
     DELBNDS,          /* Delete all bonding                   */
     BATT_LV,          /* Display battery level in milli volts */
+    ENT_SLP,          /* Enter deep sleep mode */
     BMP_SAFE_RANGE
 };

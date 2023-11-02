@@ -13,6 +13,8 @@
 #include "raw_hid.h"
 #include "apidef.h"
 
+extern void raw_hid_receive_qmk(uint8_t *data, uint8_t length); // VIA implementation in original qmk
+
 _Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 _Static_assert(sizeof(bmp_api_config_t) == 192, "Invalid size");
 flash_vial_data_t flash_vial_data;
@@ -145,7 +147,11 @@ void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
     memcpy(via_data, data, len - 1);
 
     if (pre_raw_hid_receive(via_data, len - 1)) {
-        raw_hid_receive(via_data, len - 1);
+        if (is_vial_enabled) {
+            raw_hid_receive(via_data, len - 1);
+        } else {
+            raw_hid_receive_qmk(via_data, len - 1);
+        }
     }
 }
 

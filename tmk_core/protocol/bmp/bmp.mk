@@ -17,6 +17,7 @@ SRC += $(BMP_DIR)/dynamic_keymap.c
 SRC += $(BMP_DIR)/process_record_bmp.c
 SRC += $(BMP_DIR)/state_controller.c
 SRC += $(BMP_DIR)/host_driver.c
+SRC += $(BMP_DIR)/via_qmk.c
 SRC += $(BMP_DIR)/matrix/matrix.c
 SRC += $(BMP_DIR)/matrix/matrix_basic.c
 SRC += $(BMP_DIR)/matrix/matrix_duplex.c

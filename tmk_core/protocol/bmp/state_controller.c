@@ -5,6 +5,7 @@
 #include "state_controller.h"
 #include "bmp_host_driver.h"
 #include "bmp_indicator_led.h"
+#include "bmp.h"
 
 int sleep_enter_counter     = -1;
 int reset_counter           = -1;
@@ -96,6 +97,17 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
 }
 
 void bmp_mode_transition_check(void) {
+    // auto sleep check
+    uint32_t auto_sleep_timeout = bmp_config->reserved[2] * 10 * 60 * 1000; // * 10min * 60s/min * 1000ms/s
+
+    if (auto_sleep_timeout && !is_usb_connected()) {
+        if (last_matrix_activity_elapsed() > auto_sleep_timeout     //
+            && last_encoder_activity_elapsed() > auto_sleep_timeout //
+            && last_pointing_device_activity_elapsed() > auto_sleep_timeout) {
+            sleep_enter_counter = 1;
+        }
+    }
+
     // sleep flag check
     if (sleep_enter_counter > 0) {
         sleep_enter_counter--;

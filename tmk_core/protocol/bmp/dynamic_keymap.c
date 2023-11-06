@@ -24,6 +24,7 @@
 #include "action_tapping.h"
 #include "wait.h"
 #include <string.h>
+#include "util.h"
 
 #include "bmp_flash.h"
 #include "eeprom_bmp.h"

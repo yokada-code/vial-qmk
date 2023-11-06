@@ -1,6 +1,9 @@
 SRC += $(PLATFORM_COMMON_DIR)/wait.c
-SRC += $(PLATFORM_COMMON_DIR)/transport.c
 SRC += $(PLATFORM_COMMON_DIR)/drivers/eeprom/eeprom_bmp.c
+
+ifeq ($(strip $(SPLIT_KEYBOARD)), yes)
+    SRC += $(PLATFORM_COMMON_DIR)/transport.c
+endif
 
 CONFIG_H += $(PLATFORM_COMMON_DIR)/config.h
 POST_CONFIG_H += $(PLATFORM_COMMON_DIR)/post_config.h

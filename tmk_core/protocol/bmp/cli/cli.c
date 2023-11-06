@@ -68,6 +68,11 @@ void cli_init(void) {
     mscmd_init(&mscmd, table, sizeof(table) / sizeof(table[0]), NULL);
 }
 
+void set_cli_app(cli_app_t *const p_cli_app) {
+    cli_app.func = p_cli_app->func;
+    cli_app.data = p_cli_app->data;
+}
+
 void cli_exec(void) {
     static char  buf[MSCONF_MAX_INPUT_LENGTH];
     static char *cur       = buf;

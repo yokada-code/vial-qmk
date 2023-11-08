@@ -113,8 +113,8 @@ static int8_t get_mouse_scale(DYNAMIC_CONFIG_MOUSE_SCALE scale_type) {
 void process_gesture(uint8_t layer, gesture_id_t gesture_id) {
     switch (gesture_id) {
         case GESTURE_DOWN_RIGHT ... GESTURE_UP_RIGHT: {
-            uint16_t keycode = dynamic_config_keymap_keycode_to_keycode(layer, MATRIX_MSGES_ROW * 8 + gesture_id - GESTURE_DOWN_RIGHT);
-            if (MATRIX_MSGES_ROW * 8 + gesture_id - GESTURE_DOWN_RIGHT) {
+            uint16_t keycode = dynamic_config_keymap_keycode_to_keycode(layer, (MATRIX_MSGES_ROW - 1) * 8 + gesture_id - GESTURE_DOWN_RIGHT);
+            if (keycode == MATRIX_MSGES_ROW * 8 + gesture_id - GESTURE_DOWN_RIGHT) {
                 return;
             }
             vial_keycode_tap(keycode);
@@ -351,7 +351,7 @@ void post_process_record_mouse(uint16_t keycode, keyrecord_t* record) {
             }
 
             process_gesture(layer, gesture_id);
-            // printf("id:%d x:%d,y:%d\n", gesture_id, gesture_move_x, gesture_move_y);
+            printf("id:%d x:%d,y:%d\n", gesture_id, gesture_move_x, gesture_move_y);
         }
     }
 }

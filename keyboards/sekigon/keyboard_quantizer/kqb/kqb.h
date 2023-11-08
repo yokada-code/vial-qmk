@@ -42,9 +42,3 @@ typedef union {
         uint8_t override_mode;
     };
 } keyboard_config_t;
-
-enum kb_keycodes {
-    DISABLE_KEY_OVERRIDES = QK_USER_0,
-    ENABLE_US_KEY_ON_JP_OS_OVERRIDE,
-    ENABLE_JP_KEY_ON_US_OS_OVERRIDE,
-};

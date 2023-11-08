@@ -23,6 +23,7 @@
 #include "bmp_flash.h"
 #include "bmp_file.h"
 #include "eeprom_bmp.h"
+#include "bmp_key_override.h"
 
 #ifndef DISABLE_MSC
 #    define DISABLE_MSC 0
@@ -230,6 +231,8 @@ void protocol_post_init(void) {
 
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
+
+    bmp_key_override_init();
 
     bmp_battery_check();
 }

@@ -149,7 +149,6 @@ void eeconfig_init_kb(void) {
 
 void matrix_init_kb(void) {
     keyboard_config.raw = eeconfig_read_kb();
-    set_key_override(keyboard_config.override_mode);
 }
 
 void matrix_scan_kb(void) {
@@ -374,6 +373,13 @@ MSCMD_USER_RESULT usrcmd_chparser(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
 }
 
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+    bool cont = process_record_bmp(keycode, record);
+    if (cont) {
+        process_record_user(keycode, record);
+    } else {
+        return cont;
+    }
+
     if (encoder_modifier != 0 && !is_encoder_action) {
         unregister_mods(encoder_modifier);
         encoder_modifier = 0;
@@ -400,32 +406,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             break;
     }
 
-    if (record->event.pressed) {
-        switch (keycode) {
-            case DISABLE_KEY_OVERRIDES: {
-                println("Disable key overrides");
-                keyboard_config.override_mode = NO_KEY_OS_OVERRIDE;
-                set_key_override(NO_KEY_OS_OVERRIDE);
-                eeconfig_update_kb(keyboard_config.raw);
-                return true;
-            } break;
-            case ENABLE_US_KEY_ON_JP_OS_OVERRIDE: {
-                println(
-                    "Perform as an US keyboard on the OS configured for JP");
-                keyboard_config.override_mode = US_KEY_ON_JP_OS_OVERRIDE;
-                set_key_override(US_KEY_ON_JP_OS_OVERRIDE);
-                eeconfig_update_kb(keyboard_config.raw);
-                return false;
-            } break;
-            case ENABLE_JP_KEY_ON_US_OS_OVERRIDE: {
-                println("Perform as a JP keyboard on the OS configured for US");
-                keyboard_config.override_mode = JP_KEY_ON_US_OS_OVERRIDE;
-                set_key_override(JP_KEY_ON_US_OS_OVERRIDE);
-                eeconfig_update_kb(keyboard_config.raw);
-                return false;
-            } break;
-        }
-    }
 
     return process_record_user(keycode, record);
 }

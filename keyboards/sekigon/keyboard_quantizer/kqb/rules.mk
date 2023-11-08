@@ -1,4 +1,4 @@
-SRC += matrix.c process_packet.c key_override.c
+SRC += matrix.c process_packet.c
 # MCU name
 MCU = cortex-m4
 MCU_LDSCRIPT = nrf52840_kqb

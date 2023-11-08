@@ -4,10 +4,12 @@
 
 #include "action.h"
 #include "send_string.h"
+#include "print.h"
 
 #include "apidef.h"
 #include "bmp_custom_keycodes.h"
 #include "bmp_host_driver.h"
+#include "bmp_key_override.h"
 #include "state_controller.h"
 
 bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
@@ -35,6 +37,22 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
                 char str[16];
                 snprintf(str, sizeof(str), "%4dmV", BMPAPI->app.get_vcc_mv());
                 send_string(str);
+                return false;
+            }
+            case DISABLE_KEY_OS_OVERRIDE: {
+                println("Disable key overrides");
+                remove_all_bmp_key_overrides();
+                return false;
+            }
+            case ENABLE_US_KEY_ON_JP_OS_OVERRIDE: {
+                println(
+                    "Perform as an US keyboard on the OS configured for JP");
+                register_us_key_on_jp_os_overrides();
+                return false;
+            }
+            case ENABLE_JP_KEY_ON_US_OS_OVERRIDE: {
+                println("Perform as a JP keyboard on the OS configured for US");
+                register_jp_key_on_us_os_overrides();
                 return false;
             }
         }

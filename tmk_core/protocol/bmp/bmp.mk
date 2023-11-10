@@ -12,6 +12,7 @@ SRC += $(BMP_DIR)/bmp_vial.c
 SRC += $(BMP_DIR)/bmp_flash.c
 SRC += $(BMP_DIR)/bmp_indicator_led.c
 SRC += $(BMP_DIR)/bmp_file.c
+SRC += $(BMP_DIR)/bmp_settings.c
 SRC += $(BMP_DIR)/dynamic_keymap.c
 SRC += $(BMP_DIR)/process_record_bmp.c
 SRC += $(BMP_DIR)/state_controller.c

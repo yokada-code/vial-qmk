@@ -24,6 +24,7 @@
 #include "bmp_file.h"
 #include "eeprom_bmp.h"
 #include "bmp_key_override.h"
+#include "bmp_settings.h"
 
 #ifndef DISABLE_MSC
 #    define DISABLE_MSC 0
@@ -233,6 +234,7 @@ void protocol_post_init(void) {
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
 
     bmp_key_override_init();
+    bmp_settings_init();
 
     bmp_battery_check();
 }

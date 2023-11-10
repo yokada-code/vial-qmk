@@ -18,7 +18,6 @@
 #include "report_descriptor_parser.h"
 #include "report_parser.h"
 #include "process_packet.h"
-#include "key_override.h"
 #include "quantizer_mouse.h"
 
 #include <string.h>

@@ -5,7 +5,7 @@
 
 #include "vial.h"
 
-#define BMP_KEY_OVERRIDE_ENTRIES 23
+#define BMP_KEY_OVERRIDE_ENTRIES 25
 
 extern const key_override_t **key_overrides;
 static key_override_t         bmp_override[BMP_KEY_OVERRIDE_ENTRIES]                                  = {0};

@@ -11,8 +11,8 @@ SRC += $(BMP_DIR)/bmp.c
 SRC += $(BMP_DIR)/bmp_vial.c
 SRC += $(BMP_DIR)/bmp_flash.c
 SRC += $(BMP_DIR)/bmp_indicator_led.c
-SRC += $(BMP_DIR)/bmp_encoder.c
 SRC += $(BMP_DIR)/bmp_file.c
+SRC += $(BMP_DIR)/bmp_settings.c
 SRC += $(BMP_DIR)/dynamic_keymap.c
 SRC += $(BMP_DIR)/process_record_bmp.c
 SRC += $(BMP_DIR)/state_controller.c
@@ -31,6 +31,13 @@ SRC += $(BMP_DIR)/cli/microshell/util/mscmd.c
 SRC += $(BMP_DIR)/cli/microshell/util/msopt.c
 SRC += $(BMP_DIR)/cli/microshell/util/ntlibc.c
 SRC += $(BMP_DIR)/cli/xmodem.c
+SRC += $(BMP_DIR)/key_override/bmp_key_override.c
+SRC += $(BMP_DIR)/key_override/jp_key_on_us_os_override.c
+SRC += $(BMP_DIR)/key_override/us_key_on_jp_os_override.c
+
+ifeq ($(strip $(ENCODER_ENABLE)), yes)
+	SRC += $(BMP_DIR)/bmp_encoder.c
+endif
 
 LDFLAGS += -L$(TMK_PATH)/$(BMP_DIR)
 
@@ -41,3 +48,4 @@ VPATH += $(TMK_PATH)/$(BMP_DIR)/cli
 VPATH += $(TMK_PATH)/$(BMP_DIR)/cli/microshell
 VPATH += $(TMK_PATH)/$(BMP_DIR)/cli/microshell/core
 VPATH += $(TMK_PATH)/$(BMP_DIR)/cli/microshell/util
+VPATH += $(TMK_PATH)/$(BMP_DIR)/key_override

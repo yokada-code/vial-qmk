@@ -23,6 +23,8 @@
 #include "bmp_flash.h"
 #include "bmp_file.h"
 #include "eeprom_bmp.h"
+#include "bmp_key_override.h"
+#include "bmp_settings.h"
 
 #ifndef DISABLE_MSC
 #    define DISABLE_MSC 0
@@ -64,7 +66,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .cols            = MATRIX_COLS_DEFAULT,
                                                  .device_rows     = THIS_DEVICE_ROWS,
                                                  .device_cols     = THIS_DEVICE_COLS,
-                                                 .layer           = 4,
+                                                 .layer           = 8,
                                                  .debounce        = 1,
                                                  .diode_direction = DIODE_DIRECTION == ROW2COL ? 1 : 0,
                                                  .row_pins        = MATRIX_ROW_PINS,
@@ -108,9 +110,13 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
 }
 
 bmp_error_t nus_rcv_callback(const uint8_t *dat, uint32_t len) {
+
+#ifdef RGBLIGHT_SPLIT
     if (len == sizeof(rgblight_syncinfo_t)) {
         rgblight_update_sync((rgblight_syncinfo_t *)dat, false);
     }
+#endif
+
     return BMP_OK;
 }
 
@@ -142,6 +148,10 @@ void bmp_battery_check(void) {
     bmp_indicator_set(INDICATOR_BATTERY, battery_level);
 }
 
+__attribute__((weak)) bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage, bmp_api_config_t *const keyboard_config) {
+    return true;
+}
+
 void bmp_init(void) {
     if (BMPAPI->api_version != API_VERSION) {
         BMPAPI->bootloader_jump();
@@ -153,7 +163,9 @@ void bmp_init(void) {
     is_safe_mode_ = (BMPAPI->app.init() > 0);
 
     bmp_vial_data_init();
+    bmp_config_overwrite(&flash_vial_data.bmp_config, &flash_vial_data.bmp_config);
     bmp_config = &flash_vial_data.bmp_config;
+
     if (bmp_validate_config(bmp_config) || BMPAPI->app.set_config(bmp_config) || BMP_FORCE_SAFE_MODE) {
         bmp_config = &default_config;
         BMPAPI->app.set_config(bmp_config);
@@ -221,6 +233,9 @@ void protocol_post_init(void) {
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
     BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
 
+    bmp_key_override_init();
+    bmp_settings_init();
+
     bmp_battery_check();
 }
 
@@ -229,12 +244,14 @@ void protocol_pre_task(void) {
 }
 
 void protocol_post_task(void) {
+#ifdef RGBLIGHT_SPLIT
     if (bmp_config->mode == SPLIT_MASTER && rgblight_get_change_flags()) {
         static rgblight_syncinfo_t rgblight_sync;
         rgblight_get_syncinfo(&rgblight_sync);
         BMPAPI->ble.nus_send_bytes((uint8_t *)&rgblight_sync, sizeof(rgblight_sync));
         rgblight_clear_change_flags();
     }
+#endif
 
     BMPAPI->usb.process();
     cli_exec();

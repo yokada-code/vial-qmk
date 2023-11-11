@@ -34,6 +34,7 @@ static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrob
 static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
@@ -48,6 +49,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"sel", usrcmd_select_connection, "Select USB/BLE"},
                                             {"show", usrcmd_bonding_information, "Show bonded devices"},
                                             {"del", usrcmd_delete_bonding, "Delete bonding information"},
+                                            {"config", usrcmd_config, "Show current config"},
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
@@ -66,6 +68,11 @@ void cli_puts(const char *str) {
 void cli_init(void) {
     microshell_init(&microshell, BMPAPI->usb.serial_putc, BMPAPI->usb.serial_byte_to_read, BMPAPI->usb.serial_getc, NULL);
     mscmd_init(&mscmd, table, sizeof(table) / sizeof(table[0]), NULL);
+}
+
+void set_cli_app(cli_app_t *const p_cli_app) {
+    cli_app.func = p_cli_app->func;
+    cli_app.data = p_cli_app->data;
 }
 
 void cli_exec(void) {
@@ -205,6 +212,22 @@ static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT u
     } else {
         BMPAPI->ble.delete_bond(255);
     }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    printf("Mode: %d\n"
+           "Is Left: %d\n"
+           "Debounce: %d\n"
+           "Auto sleep[min]: %d\n"
+           "Interval(Peripheral)[ms]: %d\n"
+           "Interval(Central)[ms]: %d\n",
+           bmp_config->mode, //
+           bmp_config->matrix.is_left_hand,
+           bmp_config->matrix.debounce,               //
+           bmp_config->reserved[2] * 10,                   //
+           bmp_config->param_peripheral.max_interval, //
+           bmp_config->param_central.max_interval);
     return 0;
 }
 

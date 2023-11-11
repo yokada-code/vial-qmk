@@ -97,7 +97,7 @@ static void xmodem_task_idle(void) {
 
     if (xmodem_state.id == XMODEM_IDLE) {
         static uint32_t prev_request_time;
-        if (timer_elapsed32(prev_request_time) > 10000) {
+        if (timer_elapsed32(prev_request_time) > 1000) {
             request_data();
             prev_request_time = timer_read32();
         }

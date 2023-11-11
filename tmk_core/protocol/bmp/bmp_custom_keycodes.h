@@ -27,5 +27,8 @@ enum bmp_custom_keycodes {
     DELBNDS,          /* Delete all bonding                   */
     BATT_LV,          /* Display battery level in milli volts */
     ENT_SLP,          /* Enter deep sleep mode */
+    DISABLE_KEY_OS_OVERRIDE, /* Disable key override for JP/US OS */
+    ENABLE_US_KEY_ON_JP_OS_OVERRIDE, /* Enable US keyboard on JP OS */
+    ENABLE_JP_KEY_ON_US_OS_OVERRIDE, /* Enable JP keyboard on US OS */
     BMP_SAFE_RANGE
 };

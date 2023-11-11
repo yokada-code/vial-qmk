@@ -24,8 +24,10 @@
 #include "action_tapping.h"
 #include "wait.h"
 #include <string.h>
+#include "util.h"
 
 #include "bmp_flash.h"
+#include "bmp_settings.h"
 #include "eeprom_bmp.h"
 
 #ifdef VIA_ENABLE
@@ -65,6 +67,7 @@ typedef struct {
     uint32_t vial_key_override_eeprom_addr;
     uint32_t vial_macro_eeprom_addr;
     uint32_t vial_macro_eeprom_size;
+    uint32_t bmp_settings_addr;
     uint8_t  matrix_rows;
     uint8_t  matrix_cols;
     uint8_t  layer;
@@ -146,11 +149,11 @@ int bmp_dynamic_keymap_init(void) {
     dynamic_keymap_config.vial_key_override_eeprom_addr = dynamic_keymap_config.vial_combo_eeprom_addr + VIAL_COMBO_SIZE;
     dynamic_keymap_config.vial_macro_eeprom_addr        = dynamic_keymap_config.vial_key_override_eeprom_addr + VIAL_KEY_OVERRIDE_SIZE;
 
-    if (dynamic_keymap_config.vial_macro_eeprom_addr >= TOTAL_EEPROM_BYTE_COUNT) {
+    if (dynamic_keymap_config.vial_macro_eeprom_addr >= TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE) {
         return TOTAL_EEPROM_BYTE_COUNT - dynamic_keymap_config.vial_macro_eeprom_addr;
     }
 
-    dynamic_keymap_config.vial_macro_eeprom_size = TOTAL_EEPROM_BYTE_COUNT - dynamic_keymap_config.vial_macro_eeprom_addr;
+    dynamic_keymap_config.vial_macro_eeprom_size = TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE - dynamic_keymap_config.vial_macro_eeprom_addr;
 
     return 0;
 }

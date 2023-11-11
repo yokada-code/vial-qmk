@@ -34,6 +34,7 @@ static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrob
 static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_bootloader(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_debug_enable(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
@@ -48,6 +49,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"sel", usrcmd_select_connection, "Select USB/BLE"},
                                             {"show", usrcmd_bonding_information, "Show bonded devices"},
                                             {"del", usrcmd_delete_bonding, "Delete bonding information"},
+                                            {"config", usrcmd_config, "Show current config"},
                                             {"dfu", usrcmd_bootloader, "Jump to bootloader"},
                                             {"debug", usrcmd_debug_enable, "Debug print setting"},
                                             {"dump", usrcmd_dump_memory, "Dump memory"},
@@ -210,6 +212,20 @@ static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT u
     } else {
         BMPAPI->ble.delete_bond(255);
     }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    printf("Is Left: %d\n"
+           "Debounce: %d\n"
+           "Auto sleep: %d\n"
+           "Interval(Peripheral): %d\n"
+           "Interval(Central): %d\n",
+           bmp_config->matrix.is_left_hand,
+           bmp_config->matrix.debounce,               //
+           bmp_config->reserved[2] * 10,              //
+           bmp_config->param_peripheral.max_interval, //
+           bmp_config->param_central.max_interval);
     return 0;
 }
 

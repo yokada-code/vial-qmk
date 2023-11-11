@@ -49,7 +49,7 @@ bool    qt_cmd_new;
 bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
                           bmp_api_config_t *const       keyboard_config) {
 
-    memcpy(keyboard_config, config_on_storage, sizeof(*keyboard_config));
+    memcpy(keyboard_config, &default_config, sizeof(*keyboard_config));
 
     keyboard_config->mode = SINGLE;
     memcpy(&keyboard_config->device_info, &default_config.device_info,
@@ -57,6 +57,8 @@ bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
     keyboard_config->param_peripheral.max_interval  = 8;
     keyboard_config->param_peripheral.min_interval  = 8;
     keyboard_config->param_peripheral.slave_latency = 7;
+
+    memcpy(keyboard_config->reserved, config_on_storage->reserved, sizeof(keyboard_config->reserved));
 
     return true;
 }

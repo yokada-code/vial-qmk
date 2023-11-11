@@ -3,7 +3,6 @@
 
 #define MATRIX_SCAN_TIME_MS 5 // Minimum is 5ms
 #define BMP_FORCE_SAFE_MODE false
-#define DISABLE_MSC 0
 
 /* key matrix size */
 #define MATRIX_ROWS_DEFAULT 32

@@ -210,6 +210,10 @@ static const char bmp_version_info[] = "API version: " STR(API_VERSION) "\n"
                                        "Build Target: " STR(TARGET);
 // clang-format on
 
+const char *bmp_get_version_info(void) {
+    return bmp_version_info;
+}
+
 void protocol_pre_init(void) {
     bmp_dynamic_keymap_init();
 

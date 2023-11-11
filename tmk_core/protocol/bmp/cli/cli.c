@@ -28,6 +28,7 @@ static MSCMD      mscmd;
 static cli_app_t  cli_app = {NULL, NULL};
 
 static MSCMD_USER_RESULT usrcmd_help(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_version(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_advertise(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_disconnect(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
@@ -43,6 +44,7 @@ static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usr
 static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
+                                            {"version", usrcmd_version, "Firmware version"},
                                             {"reset", usrcmd_reset, "Reset system"},
                                             {"adv", usrcmd_advertise, "Start advertising"},
                                             {"dis", usrcmd_disconnect, "Disconnect BLE"},
@@ -111,6 +113,13 @@ static MSCMD_USER_RESULT usrcmd_help(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
         cli_puts(table[i].desc);
         cli_puts("\r\n");
     }
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_version(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    printf("%s\n\n", BMPAPI->get_bootloader_info());
+    printf("%s\n", bmp_get_version_info());
+
     return 0;
 }
 

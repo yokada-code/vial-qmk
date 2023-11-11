@@ -216,14 +216,16 @@ static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT u
 }
 
 static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
-    printf("Is Left: %d\n"
+    printf("Mode: %d\n"
+           "Is Left: %d\n"
            "Debounce: %d\n"
-           "Auto sleep: %d\n"
-           "Interval(Peripheral): %d\n"
-           "Interval(Central): %d\n",
+           "Auto sleep[min]: %d\n"
+           "Interval(Peripheral)[ms]: %d\n"
+           "Interval(Central)[ms]: %d\n",
+           bmp_config->mode, //
            bmp_config->matrix.is_left_hand,
            bmp_config->matrix.debounce,               //
-           bmp_config->reserved[2] * 10,              //
+           bmp_config->reserved[2] * 10,                   //
            bmp_config->param_peripheral.max_interval, //
            bmp_config->param_central.max_interval);
     return 0;

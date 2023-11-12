@@ -351,7 +351,7 @@ void post_process_record_mouse(uint16_t keycode, keyrecord_t* record) {
             }
 
             process_gesture(layer, gesture_id);
-            printf("id:%d x:%d,y:%d\n", gesture_id, gesture_move_x, gesture_move_y);
+            dprintf("id:%d x:%d,y:%d\n", gesture_id, gesture_move_x, gesture_move_y);
         }
     }
 }

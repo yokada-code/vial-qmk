@@ -17,7 +17,10 @@
 
 #include "pointing_device.h"
 #include "virtser.h"
+#include "eeconfig.h"
+#include "vial.h"
 
+#include "keymap.h"
 #include "quantizer_mouse.h"
 #include "report_parser.h"
 #include "cli.h"
@@ -56,6 +59,7 @@ const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {{
     {0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7},
     {0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef},
 }};
+user_config_t user_config;
 
 int8_t virtser_send_wrap(uint8_t c) {
     virtser_send(c);
@@ -74,6 +78,19 @@ static uint8_t get_gesture_threshold(void) {
 void keyboard_post_init_user(void) {
     set_mouse_gesture_threshold(get_gesture_threshold());
     os_key_override_init();
+
+    user_config.raw = eeconfig_read_user();
+    switch (user_config.key_os_override) {
+        case KEY_OS_OVERRIDE_DISABLE:
+            remove_all_os_key_overrides();
+            break;
+        case US_KEY_JP_OS_OVERRIDE_DISABLE:
+            register_us_key_on_jp_os_overrides();
+            break;
+        case JP_KEY_US_OS_OVERRIDE_DISABLE:
+            register_jp_key_on_us_os_overrides();
+            break;
+    }
 }
 
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
@@ -83,18 +100,42 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     bool cont = process_record_mouse(keycode, record);
 
+    // To apply key overrides to keycodes combined shift modifier, separate to two actions
+    if (keycode >= QK_MODS && keycode <= QK_MODS_MAX) {
+        if (record->event.pressed) {
+            register_mods(QK_MODS_GET_MODS(keycode));
+            g_vial_magic_keycode_override = QK_MODS_GET_BASIC_KEYCODE(keycode);
+            action_exec((keyevent_t){
+                .type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 1, .time = (timer_read() | 1)
+            });
+        } else {
+            g_vial_magic_keycode_override = QK_MODS_GET_BASIC_KEYCODE(keycode);
+            action_exec((keyevent_t){
+                .type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 0, .time = (timer_read() | 1)
+            });
+            unregister_mods(QK_MODS_GET_MODS(keycode));
+        }
+        return false;
+    }
+
     if (record->event.pressed) {
         switch (keycode) {
             case QK_KB_0:
             remove_all_os_key_overrides();
+            user_config.key_os_override = KEY_OS_OVERRIDE_DISABLE;
+            eeconfig_update_user(user_config.raw);
             return false;
 
             case QK_KB_1:
             register_us_key_on_jp_os_overrides();
+            user_config.key_os_override = US_KEY_JP_OS_OVERRIDE_DISABLE;
+            eeconfig_update_user(user_config.raw);
             return false;
 
             case QK_KB_2:
             register_jp_key_on_us_os_overrides();
+            user_config.key_os_override = JP_KEY_US_OS_OVERRIDE_DISABLE;
+            eeconfig_update_user(user_config.raw);
             return false;
         }
     }

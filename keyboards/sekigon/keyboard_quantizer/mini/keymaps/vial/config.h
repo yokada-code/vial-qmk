@@ -20,6 +20,9 @@
 #define VIAL_UNLOCK_COMBO_ROWS { 0, 1 }
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 
+#undef PRODUCT_ID
+#define PRODUCT_ID 0x999C
+
 #define MATRIX_COLS_DEFAULT 32
 #define MATRIX_MSGES_ROW 31
 

@@ -67,7 +67,7 @@
     "url": "",
     "usb": {
         "device_version": "1.0.0",
-        "pid": "0x999B",
+        "pid": "0x999C",
         "vid": "0xFEED"
     },
     "layouts": {

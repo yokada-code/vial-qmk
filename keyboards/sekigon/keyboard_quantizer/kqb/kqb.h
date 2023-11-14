@@ -39,6 +39,18 @@ void uart_buf_init(void);
 typedef union {
     uint32_t raw;
     struct {
-        uint8_t override_mode;
+        struct {
+            uint8_t startup : 1;
+            uint8_t parser : 1;
+            uint8_t reserved : 1;
+            uint8_t sleep : 5;
+        };
+        struct {
+            uint8_t interval : 4;
+            uint8_t duty : 4;
+        };
+        uint8_t gesture_threshold;
     };
 } keyboard_config_t;
+
+_Static_assert(sizeof(keyboard_config_t) == 4, "Invalid config size");

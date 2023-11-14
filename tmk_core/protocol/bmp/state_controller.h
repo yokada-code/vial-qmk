@@ -15,6 +15,9 @@ __attribute__((weak)) void bmp_state_change_cb_kb(bmp_api_event_t event);
 bool is_usb_connected(void);
 bool is_usb_powered(void);
 bool is_ble_connected(void);
+void set_auto_sleep_timeout(uint32_t ms);
+uint32_t get_auto_sleep_timeout(void);
+
 bmp_error_t bmp_state_change_cb(bmp_api_event_t event);
 void bmp_mode_transition_check(void);
 

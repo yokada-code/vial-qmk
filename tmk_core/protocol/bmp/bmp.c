@@ -224,6 +224,8 @@ void protocol_pre_init(void) {
     const flash_vial_data_t *vial = (flash_vial_data_t *)(BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL);
     BMPAPI->usb.create_file("VIALJSONBIN", vial->vial_data, vial->len);
     BMPAPI->usb.create_file("VERSION TXT", (uint8_t *)bmp_version_info, strlen(bmp_version_info));
+
+    set_auto_sleep_timeout(bmp_config->reserved[2] * 10 * 60 * 1000);
 }
 
 void protocol_post_init(void) {

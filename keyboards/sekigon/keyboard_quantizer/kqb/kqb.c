@@ -28,6 +28,7 @@
 #include "bmp.h"
 #include "bmp_host_driver.h"
 #include "bmp_matrix.h"
+#include "state_controller.h"
 #include "apidef.h"
 #include "cli.h"
 
@@ -143,24 +144,30 @@ int send_led_cmd(uint8_t led) {
     }
 }
 
+void keyboard_post_init_kb(void) {
+    keyboard_config.raw = eeconfig_read_kb();
+
+    if (keyboard_config.startup) {
+        BMPAPI->ble.advertise(255);
+    }
+
+    set_mouse_gesture_threshold(keyboard_config.gesture_threshold == 0 ? 50 : keyboard_config.gesture_threshold);
+    set_auto_sleep_timeout(keyboard_config.sleep * 10 * 60 * 1000);
+}
+
 void eeconfig_init_kb(void) {
     keyboard_config.raw = 0;
     eeconfig_update_kb(keyboard_config.raw);
 }
 
-void matrix_init_kb(void) {
-    keyboard_config.raw = eeconfig_read_kb();
-}
-
 void matrix_scan_kb(void) {
-    bmp_api_config_t const * config = BMPAPI->app.get_config();
     static uint32_t timer = UINT32_MAX >> 1; // To run at first loop
 
-    if ((!is_usb_connected()) &&
-        config->reserved[3] > 0 &&
-        timer_elapsed32(timer) > (uint32_t)config->reserved[3] * 1000) {
-        uint32_t duty =  (config->reserved[4] < 50) ? config->reserved[4] : 50;
-        uint32_t duration = (uint32_t)config->reserved[3] * duty / 10; //  /100*10 (% * 0.1s)
+    if ((!is_usb_connected()) &&        //
+        keyboard_config.interval > 0 && //
+        timer_elapsed32(timer) > (uint32_t)keyboard_config.interval * 1000) {
+        uint32_t duty =  (keyboard_config.duty < 50) ? keyboard_config.duty : 50;
+        uint32_t duration = (uint32_t)keyboard_config.interval * duty / 10; //  /100*10 (% * 0.1s)
         int res = send_load_cmd(duration > 0xff ? 0xff : duration);
 
         if (res == 0) {
@@ -373,18 +380,47 @@ MSCMD_USER_RESULT usrcmd_chparser(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
     return 0;
 }
 
-bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
-    bool cont = process_record_bmp(keycode, record);
-    if (cont) {
-        process_record_user(keycode, record);
-    } else {
-        return cont;
-    }
+MSCMD_USER_RESULT usrcmd_kqb_settings(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    char arg[16];
+    char value_str[4] = {0};
+    msopt_get_argv(msopt, 1, arg, sizeof(arg));
 
+    if (strncmp(arg, "set", sizeof(arg)) == 0) {
+        msopt_get_argv(msopt, 2, arg, sizeof(arg));
+        msopt_get_argv(msopt, 3, value_str, sizeof(value_str));
+        uint8_t value = (uint8_t)atoi(value_str);
+        if (strncmp(arg, "startup", sizeof(arg)) == 0) {
+            keyboard_config.startup = value;
+        } else if (strncmp(arg, "parser", sizeof(arg)) == 0) {
+            keyboard_config.parser = value;
+        } else if (strncmp(arg, "sleep", sizeof(arg)) == 0) {
+            keyboard_config.sleep = value;
+        } else if (strncmp(arg, "interval", sizeof(arg)) == 0) {
+            keyboard_config.interval = value;
+        } else if (strncmp(arg, "duty", sizeof(arg)) == 0) {
+            keyboard_config.duty = value;
+        } else if (strncmp(arg, "gesture", sizeof(arg)) == 0) {
+            keyboard_config.gesture_threshold = value;
+        }
+        eeconfig_update_kb(keyboard_config.raw);
+    } else {
+        printf("{\"startup\":%d, \"parser\":%d, \"sleep\":%d, \"interval\": %d, \"duty\": %d, \"gesture\": %d}\n", //
+               keyboard_config.startup,                                                                            //
+               keyboard_config.parser,                                                                             //
+               keyboard_config.sleep,                                                                              //
+               keyboard_config.interval,                                                                           //
+               keyboard_config.duty,                                                                               //
+               keyboard_config.gesture_threshold);
+    }
+    return 0;
+}
+
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (encoder_modifier != 0 && !is_encoder_action) {
         unregister_mods(encoder_modifier);
         encoder_modifier = 0;
     }
+
     switch (keycode) {
         case QK_MODS ... QK_MODS_MAX:
             if (is_encoder_action) {
@@ -407,6 +443,10 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             break;
     }
 
+    bool cont = process_record_bmp(keycode, record);
+    if (cont) {
+        cont = process_record_user(keycode, record);
+    }
 
-    return process_record_user(keycode, record);
+    return cont;
 }

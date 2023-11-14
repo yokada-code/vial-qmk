@@ -15,6 +15,8 @@ static bool is_usb_connected_ = false;
 static bool is_usb_powered_   = false;
 static bool is_ble_connected_ = false;
 
+static uint32_t auto_sleep_timeout_ms = 0;
+
 bool is_usb_connected(void) {
     return is_usb_connected_;
 }
@@ -23,6 +25,14 @@ bool is_usb_powered(void) {
 }
 bool is_ble_connected(void) {
     return is_ble_connected_;
+}
+
+void set_auto_sleep_timeout(uint32_t ms) {
+    auto_sleep_timeout_ms = ms;
+}
+
+uint32_t get_auto_sleep_timeout(void) {
+    return auto_sleep_timeout_ms;
 }
 
 __attribute__((weak)) void bmp_before_sleep(void) {}
@@ -98,12 +108,10 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
 
 void bmp_mode_transition_check(void) {
     // auto sleep check
-    uint32_t auto_sleep_timeout = bmp_config->reserved[2] * 10 * 60 * 1000; // * 10min * 60s/min * 1000ms/s
-
-    if (auto_sleep_timeout && !is_usb_connected()) {
-        if (last_matrix_activity_elapsed() > auto_sleep_timeout     //
-            && last_encoder_activity_elapsed() > auto_sleep_timeout //
-            && last_pointing_device_activity_elapsed() > auto_sleep_timeout) {
+    if ((auto_sleep_timeout_ms > 0) && !is_usb_connected()) {
+        if (last_matrix_activity_elapsed() > auto_sleep_timeout_ms     //
+            && last_encoder_activity_elapsed() > auto_sleep_timeout_ms //
+            && last_pointing_device_activity_elapsed() > auto_sleep_timeout_ms) {
             sleep_enter_counter = 1;
         }
     }

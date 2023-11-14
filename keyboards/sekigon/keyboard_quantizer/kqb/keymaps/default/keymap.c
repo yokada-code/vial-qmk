@@ -54,14 +54,6 @@ const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {{
     {0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef},
 }};
 
-static uint8_t get_gesture_threshold(void) {
-    return BMPAPI->app.get_config()->reserved[5];
-}
-
-void keyboard_post_init_user(void) {
-    set_mouse_gesture_threshold(get_gesture_threshold());
-}
-
 bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     return pre_process_record_mouse(keycode, record);
 }

@@ -29,6 +29,7 @@
 #    include "microshell/core/msconf.h"
 #    include "microshell/util/mscmd.h"
 #    define USER_DEFINED_MSCMD \
+        { "kqb_settings", usrcmd_kqb_settings, "Get/Set kqb settings" }, \
         { "chboot", usrcmd_chboot, "Start CH559 programming" }, \
         { "chreset", usrcmd_chreset, "Reset CH559" }, \
         { "chload", usrcmd_chload, "Current load test CH559" },\
@@ -36,6 +37,7 @@
         { "chdev", usrcmd_chdev, "Show devices connected to CH559" },\
         { "chver", usrcmd_chver, "Show CH559 FW version" },\
         { "chprsr", usrcmd_chparser, "Change parser type" },
+MSCMD_USER_RESULT usrcmd_kqb_settings(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 MSCMD_USER_RESULT usrcmd_chboot(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 MSCMD_USER_RESULT usrcmd_chreset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 MSCMD_USER_RESULT usrcmd_chload(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);

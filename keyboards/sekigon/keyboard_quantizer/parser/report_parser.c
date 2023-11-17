@@ -127,6 +127,36 @@ void keyboard_report_parser(hid_report_member_t const *member,
   keyboard_report_hook(&result);
 }
 
+bool report_parser_boot_keyboard(uint8_t const *report, uint8_t report_len) {
+    const uint8_t BOOT_KEYBOARD_REPORT_LEN     = 8;
+    const uint8_t BOOT_KEYBOARD_REPORT_KEY_LEN = 6;
+
+    if (report_len == BOOT_KEYBOARD_REPORT_LEN) {
+        keyboard_parse_result_t result = {0};
+
+        for (int bit = 0; bit < 8; bit++) {
+            uint8_t mod_bit = (report[0] & (1 << bit));
+            if (mod_bit != 0) {
+                uint8_t keycode = bit + 0xe0;
+                result.bits[(keycode >> 3)] |= (1 << (keycode & 0x07));
+            }
+        }
+
+        for (int idx = 0; idx < BOOT_KEYBOARD_REPORT_KEY_LEN; idx++) {
+            uint8_t keycode = report[idx + 2];
+            if (keycode != 0) {
+                result.bits[(keycode >> 3)] |= (1 << (keycode & 0x07));
+            }
+        }
+
+        keyboard_report_hook(&result);
+
+        return true;
+    }
+
+    return false;
+}
+
 static int16_t parse_value(hid_report_member_t const *member, uint8_t const *data,
                     uint16_t *bit_idx) {
   int16_t result = 0;

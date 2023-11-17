@@ -11,6 +11,7 @@
 // QMK headers
 #include "printf.h"
 #include "debug.h"
+#include "wait.h"
 
 // BMP headers
 #include "cli.h"
@@ -21,6 +22,7 @@
 #include "eeprom_bmp.h"
 #include "xmodem.h"
 #include "bmp_vial.h"
+#include "bmp_flash.h"
 
 void              cli_puts(const char *str);
 static MICROSHELL microshell;
@@ -42,6 +44,7 @@ static MSCMD_USER_RESULT usrcmd_dump_memory(MSOPT *msopt, MSCMD_USER_OBJECT usro
 static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_factory_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"version", usrcmd_version, "Firmware version"},
@@ -58,6 +61,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"default", usrcmd_eeprom_default, "Save/Load default eeprom data"},
                                             {"xmodem", usrcmd_start_xmodem, "Start XMODEM"},
                                             {"vial", usrcmd_enable_vial, "Enable/Disable vial"},
+                                            {"factory_reset", usrcmd_factory_reset, "Factory reset"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -360,5 +364,14 @@ static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usro
         }
     }
     printf("Usage: vial [on/off]");
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_factory_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    printf("Erasing all setting files...\n");
+    for (int page = 0; page < FLASH_PAGE_ID_END; page++) {
+        flash_erase_page(page);
+    }
+
     return 0;
 }

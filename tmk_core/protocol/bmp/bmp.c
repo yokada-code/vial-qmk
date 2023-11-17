@@ -95,7 +95,10 @@ bmp_error_t msc_write_callback(const uint8_t *dat, uint32_t len) {
 
     if (offset == 0) {
         file_type = detect_file_type(dat, len);
-        printf("File type:%d\n", file_type);
+        if (file_type != BMP_FILE_NONE)
+        {
+            printf("File type:%d\n", file_type);
+        }
     }
 
     bmp_file_res_t res = write_bmp_file(file_type, dat, offset, len);

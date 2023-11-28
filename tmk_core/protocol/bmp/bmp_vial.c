@@ -64,9 +64,10 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     // Override matrix test
     else if (msg[0] == id_get_keyboard_value && msg[1] == id_switch_matrix_state) {
         _continue = false;
-        uint8_t i = 2;
+        uint8_t i      = is_vial_enabled ? 2 : 3;
+        uint8_t offset = is_vial_enabled ? 0 : msg[2];
         for (uint8_t row = 0; row < bmp_config->matrix.rows; row++) {
-            matrix_row_t value = matrix_get_row(row);
+            matrix_row_t value = matrix_get_row(row + offset);
 
             if (bmp_config->matrix.cols > 24) {
                 msg[i++] = (value >> 24) & 0xFF;

@@ -86,7 +86,7 @@ dynamic_keymap_config_t dynamic_keymap_config;
 #define VIAL_ENCODERS_SIZE dynamic_keymap_config.encoder_size
 
 // QMK settings area is just past encoders
-#define VIAL_QMK_SETTINGS_EEPROM_ADDR dynamic_keymap_config.vial_combo_eeprom_addr
+#define VIAL_QMK_SETTINGS_EEPROM_ADDR dynamic_keymap_config.vial_qmk_setting_eeprom_addr
 
 #ifdef QMK_SETTINGS
 #include "qmk_settings.h"

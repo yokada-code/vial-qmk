@@ -8,6 +8,7 @@
 #include "raw_hid.h"
 #include "keyboard.h"
 #include "rgblight.h"
+#include "eeprom_driver.h"
 
 // TMK headers
 #include "host_driver.h"
@@ -204,6 +205,8 @@ void        bmp_main_task(void *_) {
 void protocol_setup(void) {
     bmp_init();
     host_set_driver(&driver);
+    eeprom_driver_init();
+    bmp_dynamic_keymap_init();
 }
 
 // clang-format off
@@ -218,8 +221,6 @@ const char *bmp_get_version_info(void) {
 }
 
 void protocol_pre_init(void) {
-    bmp_dynamic_keymap_init();
-
     BMPAPI->usb.create_file("EEPROM  BIN", eeprom_cache, EEPROM_SIZE);
     BMPAPI->usb.create_file("CONFIG  BIN", BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_VIAL, BMP_USER_FLASH_PAGE_SIZE);
     BMPAPI->usb.create_file("DEFAULT BIN", BMPAPI->flash.get_base_address() + BMP_USER_FLASH_PAGE_SIZE * FLASH_PAGE_ID_EEPROM_DEFAULT0, BMP_USER_FLASH_PAGE_SIZE * 2);

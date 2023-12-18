@@ -193,6 +193,7 @@ __attribute__((weak)) void keyboard_report_hook(keyboard_parse_result_t const* r
 
     // copy modifier bits
     matrix_dest[0] = report->bits[28];
+    matrix_dest[29] = 0;
 }
 
 __attribute__((weak)) void mouse_report_hook(mouse_parse_result_t const* report) {

@@ -26,6 +26,7 @@
 #include "eeprom_bmp.h"
 #include "bmp_key_override.h"
 #include "bmp_settings.h"
+#include "bmp_host_driver.h"
 
 #ifndef DISABLE_MSC
 #    define DISABLE_MSC 0
@@ -177,7 +178,8 @@ void bmp_init(void) {
 
     BMPAPI->usb.set_msc_write_cb(msc_write_callback);
     BMPAPI->app.set_state_change_cb(bmp_state_change_cb);
-    BMPAPI->usb.set_raw_receive_cb(bmp_raw_hid_receive);
+    BMPAPI->usb.set_raw_receive_cb(bmp_raw_hid_receive_usb);
+    BMPAPI->ble.set_raw_receive_cb(bmp_raw_hid_receive_ble);
     if (bmp_config->mode == SPLIT_SLAVE) {
         BMPAPI->ble.set_nus_rcv_cb(nus_rcv_callback);
     }

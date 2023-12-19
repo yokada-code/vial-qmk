@@ -138,7 +138,7 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
     return _continue;
 }
 
-void bmp_raw_hid_receive(const uint8_t *data, uint8_t len) {
+void bmp_raw_hid_receive_common(const uint8_t *data, uint8_t len) {
     static uint8_t via_data[32];
     if (len > sizeof(via_data) + 1) {
         printf("<raw_hid>Too large packet");

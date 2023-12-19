@@ -27,3 +27,4 @@ void                     bmp_vial_data_init(void);
 void                     bmp_raw_hid_receive(const uint8_t *data, uint8_t len);
 void                     bmp_vial_save_config(void);
 void                     bmp_set_vial_enable_flag(bool flag);
+void                     bmp_raw_hid_receive_common(const uint8_t *data, uint8_t len);

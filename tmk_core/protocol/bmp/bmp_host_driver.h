@@ -12,3 +12,5 @@ void select_ble(void);
 void select_usb(void);
 bool is_ble_connected(void);
 bool is_usb_connected(void);
+void bmp_raw_hid_receive_usb(const uint8_t *data, uint8_t len);
+void bmp_raw_hid_receive_ble(const uint8_t *data, uint8_t len);

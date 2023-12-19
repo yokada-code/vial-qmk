@@ -7,6 +7,7 @@
 
 // BMP headers
 #include "apidef.h"
+#include "bmp_vial.h"
 
 uint8_t     keyboard_idle __attribute__((aligned(2)))      = 0;
 uint8_t     keyboard_protocol __attribute__((aligned(2)))  = 1;
@@ -122,6 +123,21 @@ void serial_putc(void *p, char c) {
     BMPAPI->usb.serial_putc(c);
 }
 
-void raw_hid_send(uint8_t *data, uint8_t length) {
-    BMPAPI->usb.raw_send(data, length);
+static uint8_t raw_hid_send_protocol = 0;
+void           raw_hid_send(uint8_t *data, uint8_t length) {
+    if (raw_hid_send_protocol == 0) {
+        BMPAPI->usb.raw_send(data, length);
+    } else {
+        BMPAPI->ble.raw_send(data, length);
+    }
+}
+
+void bmp_raw_hid_receive_usb(const uint8_t *data, uint8_t len) {
+    raw_hid_send_protocol = 0;
+    bmp_raw_hid_receive_common(data, len);
+}
+
+void bmp_raw_hid_receive_ble(const uint8_t *data, uint8_t len) {
+    raw_hid_send_protocol = 1;
+    bmp_raw_hid_receive_common(data, len);
 }

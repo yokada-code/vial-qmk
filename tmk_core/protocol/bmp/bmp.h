@@ -23,6 +23,7 @@ void bmp_via_receive_cb(uint8_t *data, uint8_t length,
                                             uint8_t        length));
 
 bool is_safe_mode(void);
+void bmp_post_keyboard_task(void);
 bool process_record_bmp(uint16_t keycode, keyrecord_t *record);
 
 extern int sleep_enter_counter;

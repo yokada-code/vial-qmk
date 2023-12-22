@@ -271,10 +271,10 @@ void protocol_post_task(void) {
 void protocol_task(void) {
     protocol_pre_task();
 
-    if(do_keyboard_task)
-    {
+    if (do_keyboard_task) {
         do_keyboard_task = false;
         keyboard_task();
+        bmp_post_keyboard_task();
     }
 
     protocol_post_task();

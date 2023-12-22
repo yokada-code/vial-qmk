@@ -97,6 +97,9 @@ bool pre_process_record_user(uint16_t keycode, keyrecord_t *record) {
     return pre_process_record_mouse(keycode, record);
 }
 
+static uint16_t deferred_keycode;
+static keyevent_t deferred_key_event;
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     bool cont = process_record_mouse(keycode, record);
 
@@ -104,15 +107,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (keycode >= QK_MODS && keycode <= QK_MODS_MAX) {
         if (record->event.pressed) {
             register_mods(QK_MODS_GET_MODS(keycode));
-            g_vial_magic_keycode_override = QK_MODS_GET_BASIC_KEYCODE(keycode);
-            action_exec((keyevent_t){
-                .type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 1, .time = (timer_read() | 1)
-            });
+            deferred_keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
+            deferred_key_event = (keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 1, .time = (timer_read() | 1)};
         } else {
-            g_vial_magic_keycode_override = QK_MODS_GET_BASIC_KEYCODE(keycode);
-            action_exec((keyevent_t){
-                .type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 0, .time = (timer_read() | 1)
-            });
+            deferred_keycode = QK_MODS_GET_BASIC_KEYCODE(keycode);
+            deferred_key_event = ((keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 0, .time = (timer_read() | 1)});
             unregister_mods(QK_MODS_GET_MODS(keycode));
         }
         return false;
@@ -148,5 +147,10 @@ void post_process_record_user(uint16_t keycode, keyrecord_t* record) {
 }
 
 void housekeeping_task_user(void) {
+    if (deferred_keycode != KC_NO) {
+        g_vial_magic_keycode_override = deferred_keycode;
+        action_exec(deferred_key_event);
+        deferred_keycode = KC_NO;
+    }
     cli_exec();
 }

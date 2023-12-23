@@ -33,6 +33,18 @@
             {
                 "pin_a": "LINE_PIN19",
                 "pin_b": "LINE_PIN20"
+            },
+            {
+                "pin_a": "LINE_PIN19",
+                "pin_b": "LINE_PIN20"
+            },
+            {
+                "pin_a": "LINE_PIN19",
+                "pin_b": "LINE_PIN20"
+            },
+            {
+                "pin_a": "LINE_PIN19",
+                "pin_b": "LINE_PIN20"
             }
         ]
     },

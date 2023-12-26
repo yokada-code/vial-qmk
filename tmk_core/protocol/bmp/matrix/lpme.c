@@ -175,34 +175,34 @@ uint32_t lpme_scan(lpme_config_t *const config, matrix_row_t *rows,
                    bool wakeup) {
     uint32_t        change                 = 0;
     static uint32_t run_mode               = 0;
-    static uint32_t sleep_counter          = 0;
-    static uint32_t sleep_enter_counter    = 0;
-    const uint32_t  sleep_enter_threthold1 = 10000 / MAINTASK_INTERVAL;
-    const uint32_t  sleep1_interval        = 60 / MAINTASK_INTERVAL;
-    const uint32_t  sleep_enter_threthold2 = 30000 / MAINTASK_INTERVAL;
-    const uint32_t  sleep2_interval        = 90 / MAINTASK_INTERVAL;
+    static uint32_t interval_start_time    = 0;
+    static uint32_t last_key_press_time    = 0;
+    const uint32_t  sleep_enter_threthold1 = 10000;
+    const uint32_t  sleep1_interval        = MAINTASK_INTERVAL * 3;
+    const uint32_t  sleep_enter_threthold2 = 30000;
+    const uint32_t  sleep2_interval        = MAINTASK_INTERVAL * 6;
 
     if (wakeup) {
         run_mode            = 0;
-        sleep_enter_counter = 0;
-        sleep_counter       = 0;
+        last_key_press_time = timer_read32();
+        interval_start_time = timer_read32();
         dprint("LPME wake up\n");
     }
 
     if (run_mode == 0) {
     } else if (run_mode == 1) {
-        if (++sleep_counter < sleep1_interval) {
+        if (timer_elapsed32(interval_start_time) < sleep1_interval) {
+            // skip scan
             return 0;
         } else {
-            sleep_counter = 0;
-            sleep_enter_counter += sleep1_interval;
+            interval_start_time = timer_read32();
         }
     } else if (run_mode == 2) {
-        if (++sleep_counter < sleep2_interval) {
+        if (timer_elapsed32(interval_start_time) < sleep2_interval) {
+            // skip scan
             return 0;
         } else {
-            sleep_counter = 0;
-            sleep_enter_counter += sleep2_interval;
+            interval_start_time = timer_read32();
         }
     }
 
@@ -218,7 +218,7 @@ uint32_t lpme_scan(lpme_config_t *const config, matrix_row_t *rows,
             }
         }
         row_prepare_flag    = false;
-        sleep_enter_counter = 0;
+        last_key_press_time = timer_read32();
     } else {
         // no switch is pressed
         for (int row_idx = 0; row_idx < config->row_num; row_idx++) {
@@ -227,16 +227,14 @@ uint32_t lpme_scan(lpme_config_t *const config, matrix_row_t *rows,
                 change        = 1;
             }
         }
-
-        sleep_enter_counter++;
     }
 
-    if (sleep_enter_counter > sleep_enter_threthold2) {
+    if (timer_elapsed32(last_key_press_time) > sleep_enter_threthold2) {
         if (run_mode != 2) {
             dprint("LPME enter sleep mode2\n");
         }
         run_mode = 2;
-    } else if (sleep_enter_counter > sleep_enter_threthold1) {
+    } else if (timer_elapsed32(last_key_press_time) > sleep_enter_threthold1) {
         if (run_mode != 1) {
             dprint("LPME enter sleep mode1\n");
         }

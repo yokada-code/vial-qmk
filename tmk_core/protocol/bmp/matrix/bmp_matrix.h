@@ -21,3 +21,5 @@ static const bmp_api_gpio_mode_t bmp_gpio_out_od = {
 typedef uint32_t matrix_col_t;
 
 #define setPinOd(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_od)
+
+uint32_t bmp_matrix_get_device_row(void);

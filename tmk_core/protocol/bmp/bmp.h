@@ -30,3 +30,5 @@ extern int sleep_enter_counter;
 extern int reset_counter;
 void bmp_enter_sleep(void);
 void bmp_before_sleep(void);
+
+extern const uint8_t MAINTASK_INTERVAL;

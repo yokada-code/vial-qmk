@@ -151,6 +151,8 @@ void bmp_battery_check(void) {
     }
 
     bmp_indicator_set(INDICATOR_BATTERY, battery_level);
+    bmp_set_enable_task_interval_stretch(false);
+    bmp_schedule_next_task();
 }
 
 __attribute__((weak)) bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage, bmp_api_config_t *const keyboard_config) {
@@ -189,11 +191,6 @@ void bmp_init(void) {
     BMPAPI->logger.info("usb init");
     cli_init();
 
-    if ((bmp_config->mode == SINGLE || bmp_config->mode == SPLIT_MASTER) //
-        && bmp_config->startup == 1) {
-        BMPAPI->ble.advertise(255);
-    }
-
     BMPAPI->usb.enable();
     BMPAPI->logger.info("usb enable");
 }
@@ -201,7 +198,8 @@ void bmp_init(void) {
 static bool do_keyboard_task = false;
 void        bmp_main_task(void *_) {
     do_keyboard_task = true;
-    bmp_indicator_task(MAINTASK_INTERVAL);
+    bool is_indicator_active = bmp_indicator_task();
+    bmp_set_enable_task_interval_stretch(!is_indicator_active);
 }
 
 void protocol_setup(void) {
@@ -243,12 +241,20 @@ void protocol_post_init(void) {
     eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_WRITE_THROUGH);
 
     print_set_sendchar((sendchar_func_t)BMPAPI->usb.serial_putc);
-    BMPAPI->app.main_task_start(bmp_main_task, MAINTASK_INTERVAL);
 
     bmp_key_override_init();
     bmp_settings_init();
 
+
+    BMPAPI->app.main_task_init(bmp_main_task, MAINTASK_INTERVAL);
+    BMPAPI->app.schedule_next_task(MAINTASK_INTERVAL);
+
     bmp_battery_check();
+
+    if (bmp_config->mode == SPLIT_SLAVE || ((bmp_config->mode == SINGLE || bmp_config->mode == SPLIT_MASTER) //
+                                            && bmp_config->startup == 1)) {
+        BMPAPI->ble.advertise(255);
+    }
 }
 
 void protocol_pre_task(void) {
@@ -277,6 +283,7 @@ void protocol_task(void) {
         do_keyboard_task = false;
         keyboard_task();
         bmp_post_keyboard_task();
+        bmp_schedule_next_task();
     }
 
     protocol_post_task();

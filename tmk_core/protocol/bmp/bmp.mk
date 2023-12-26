@@ -4,6 +4,8 @@ OPT_DEFS += -UNO_DEBUG
 
 SRC := $(filter-out $(QUANTUM_DIR)/dynamic_keymap.c, $(SRC))
 SRC := $(filter-out $(QUANTUM_DIR)/encoder.c, $(SRC))
+# Override get_tapping_term of VIAL
+# $(INTERMEDIATE_OUTPUT)/quantum/vial.o: CFLAGS += -Dget_tapping_term=get_tapping_term_vial_default
 
 SRC += $(BMP_DIR)/gcc_startup_nrf52840.S
 SRC += $(BMP_DIR)/crc16.c

@@ -90,7 +90,7 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
     else {
         switch (keycode) {
             case ENT_SLP: {
-                sleep_enter_counter = 10;
+                sleep_enter_counter = 1;
                 return false;
             }
         }

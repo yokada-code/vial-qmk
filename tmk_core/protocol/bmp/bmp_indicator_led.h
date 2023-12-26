@@ -32,7 +32,7 @@ typedef enum {
 // return: stack index
 int bmp_indicator_set(BMP_INDICATOR_TYPE type, int32_t option);
 int bmp_indicator_user_pattern(uint32_t time_ms, int32_t option);
-void bmp_indicator_task(uint32_t elapsed_time_ms);
+bool bmp_indicator_task(void);
 void bmp_indicator_init(uint8_t led_pin);
 void bmp_indicator_led_on(void);
 void bmp_indicator_led_off(void);

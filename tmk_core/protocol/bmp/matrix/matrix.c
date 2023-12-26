@@ -29,6 +29,7 @@ static matrix_row_t matrix[DEFAULT_MATRIX_ROWS];
 static matrix_row_t matrix_dummy[DEFAULT_MATRIX_ROWS];
 static matrix_row_t matrix_debouncing[DEFAULT_MATRIX_ROWS];
 matrix_row_t        matrix_row2col[DEFAULT_MATRIX_ROWS];
+static bool         slave_disconnect_flag;
 
 static const bmp_matrix_func_t *matrix_func;
 extern const bmp_matrix_func_t  matrix_func_row2col;
@@ -71,6 +72,11 @@ inline uint8_t matrix_cols(void) {
 
 __attribute__((weak)) const bmp_matrix_func_t *get_matrix_func_user(void) {
     return NULL;
+}
+
+static bmp_error_t matrix_on_slave_disconnect(void) {
+    slave_disconnect_flag = true;
+    return BMP_OK;
 }
 
 void matrix_init(void) {
@@ -119,18 +125,22 @@ void matrix_init(void) {
 #if defined(BMP_BOOTPIN_AS_RESET)
     setPinInputHigh(BOOTPIN);
 #endif
+
+    BMPAPI->ble.set_nus_disconnect_cb(matrix_on_slave_disconnect);
 }
 
 __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
     const bmp_api_config_t *config         = BMPAPI->app.get_config();
     const uint8_t           device_row     = matrix_func->get_device_row();
+    const uint8_t           matrix_row     = matrix_rows();
     const uint8_t           device_col     = matrix_func->get_device_col();
     uint8_t                 matrix_offset  = config->matrix.is_left_hand ? 0 : config->matrix.rows - device_row;
     int                     matrix_changed = 0;
 
     uint32_t            raw_changed = matrix_func->scan(matrix_debouncing);
     bmp_api_key_event_t key_state[16];
-    matrix_changed = bmp_debounce(matrix_debouncing + matrix_offset, matrix_dummy + matrix_offset, device_row, device_col, config->matrix.debounce * MAINTASK_INTERVAL, raw_changed, key_state);
+    matrix_changed = bmp_debounce(matrix_debouncing + matrix_offset, matrix_dummy + matrix_offset, device_row, device_col, //
+                                  config->matrix.debounce * MAINTASK_INTERVAL, raw_changed, key_state);
 
     for (int i = 0; i < matrix_changed; i++) {
         BMPAPI->app.push_keystate_change(&key_state[i]);
@@ -150,7 +160,7 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
         dprintf("\n");
     }
 
-    uint32_t pop_cnt = BMPAPI->app.pop_keystate_change(key_state, sizeof(key_state) / sizeof(key_state[0]), config->param_central.max_interval / MAINTASK_INTERVAL + 3);
+    uint32_t pop_cnt = BMPAPI->app.pop_keystate_change(key_state, sizeof(key_state) / sizeof(key_state[0]), config->param_central.max_interval);
 
     for (uint32_t i = 0; i < pop_cnt; i++) {
         if (key_state[i].state == 0) {
@@ -162,7 +172,7 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
 
     if (debug_config.keyboard && pop_cnt > 0) {
         dprintf("matrix rows:\n");
-        for (uint8_t idx = 0; idx < device_row; idx++) {
+        for (uint8_t idx = 0; idx < matrix_row; idx++) {
             if (device_col <= 8) {
                 dprintf("\tr%02d:0x%02x\n", idx, (uint8_t)_matrix[idx]);
             } else if (device_col <= 16) {
@@ -172,6 +182,15 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
             }
         }
         dprintf("\n");
+    }
+
+    if (slave_disconnect_flag) {
+        slave_disconnect_flag = false;
+        uint8_t slave_offset  = config->matrix.is_left_hand ? device_row : 0;
+        for (uint8_t idx = 0; idx < matrix_row - device_row; idx++) {
+            _matrix[idx + slave_offset] = 0;
+        }
+        pop_cnt++;
     }
 
     return pop_cnt;
@@ -201,3 +220,7 @@ matrix_row_t matrix_get_row(uint8_t row) {
 }
 
 void matrix_print(void) {}
+
+uint32_t bmp_matrix_get_device_row(void) {
+    return matrix_func->get_device_row();
+}

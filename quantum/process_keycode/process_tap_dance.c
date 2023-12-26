@@ -22,6 +22,10 @@
 #include "timer.h"
 #include "wait.h"
 
+#ifdef PROTOCOL_BMP
+#    include "bmp/state_controller.h"
+#endif
+
 static uint16_t active_td;
 static uint16_t last_tap_time;
 
@@ -161,6 +165,11 @@ bool process_tap_dance(uint16_t keycode, keyrecord_t *record) {
                 last_tap_time = timer_read();
                 process_tap_dance_action_on_each_tap(action);
                 active_td = action->state.finished ? 0 : keycode;
+#ifdef PROTOCOL_BMP
+                if (active_td != 0) {
+                    BMPAPI->app.schedule_next_task(GET_TAPPING_TERM(active_td, &(keyrecord_t){}) + 1);
+                }
+#endif
             } else {
                 process_tap_dance_action_on_each_release(action);
                 if (action->state.finished) {
@@ -169,6 +178,12 @@ bool process_tap_dance(uint16_t keycode, keyrecord_t *record) {
                         active_td = 0;
                     }
                 }
+
+#ifdef PROTOCOL_BMP
+                if (active_td != 0) {
+                    BMPAPI->app.schedule_next_task(GET_TAPPING_TERM(active_td, &(keyrecord_t){}) + 1);
+                }
+#endif
             }
 
             break;

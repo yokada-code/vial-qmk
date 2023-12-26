@@ -2,10 +2,11 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "error_def.h"
 
-#define API_VERSION 14
+#define API_VERSION 15
 #define CONFIG_VERSION 3
 #define PINS_MAX 32
 
@@ -13,6 +14,8 @@
 
 #define BMP_USER_FLASH_PAGE_SIZE 4096
 #define BMP_USER_FLASH_PAGE_LEN 6
+
+#define BMP_SCHEDULE_WAIT_NEXT_EVENT (-1)
 
 typedef uint32_t bmp_api_matrix_row_t;
 typedef uint32_t bmp_api_matrix_col_t;
@@ -188,11 +191,11 @@ typedef struct {
 
 typedef union {
     struct {
-        uint8_t timing : 8;
+        uint8_t time[3];
         uint8_t state : 1;
         uint8_t id : 7;
     };
-    uint8_t dat[2];
+    uint8_t dat[4];
 } bmp_api_switch_state_t;
 
 typedef struct {
@@ -218,7 +221,9 @@ typedef struct {
     int32_t (*init)(void);
     void (*reset)(uint32_t);
     void (*enter_sleep_mode)(void);
-    void (*main_task_start)(void (*main_task)(void*), uint8_t interval_ms);
+    void (*main_task_init)(void (*main_task)(void*), uint8_t default_interval);
+    bool (*has_schedule_in_range)(uint32_t from_ms, uint32_t to_ms);
+    void (*schedule_next_task)(int32_t interval_ms);
     void (*process_task)(void);
     bmp_error_t (*push_keystate_change)(bmp_api_key_event_t const* const key);
     uint32_t (*pop_keystate_change)(bmp_api_key_event_t* key, uint32_t len,

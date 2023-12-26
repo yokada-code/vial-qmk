@@ -163,18 +163,17 @@ const static bmp_indicator_task_t indicator_tasks[INDICATOR_END] = {
     [INDICATOR_USER] = bmp_indicator_user_pattern,
 };
 
-void bmp_indicator_task(uint32_t elapsed_time_ms) {
-    static uint32_t time;
+/// @return active indicator exists or not
+bool bmp_indicator_task(void) {
+    static uint32_t           current_indicator_begin_ms;
     static BMP_INDICATOR_TYPE current_type = INDICATOR_NONE;
 
-    time += elapsed_time_ms;
-
     if (indicator_stack[0].type != current_type) {
-        current_type = indicator_stack[0].type;
-        time = 0;
+        current_type               = indicator_stack[0].type;
+        current_indicator_begin_ms = timer_read32();
     }
 
-    int res = indicator_tasks[current_type](time, indicator_stack[0].option);
+    int res = indicator_tasks[current_type](timer_elapsed32(current_indicator_begin_ms), indicator_stack[0].option);
 
     if (res) {
         if (indicator_stack_cnt > 1) {
@@ -194,6 +193,8 @@ void bmp_indicator_task(uint32_t elapsed_time_ms) {
             indicator_stack_cnt = 0;
         }
     }
+
+    return indicator_stack_cnt > 0;
 }
 
 static uint8_t indicator_led = 0xFF;

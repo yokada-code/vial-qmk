@@ -20,6 +20,7 @@ const bmp_matrix_func_t matrix_func_col2row = {init_col2row, get_device_row, get
 //
 //// col2row matrix
 //
+
 static void unselect_rows(void) {
     const bmp_api_config_t *config = BMPAPI->app.get_config();
 
@@ -35,6 +36,13 @@ static void select_row(uint8_t row) {
     const uint8_t pin = BMPAPI->app.get_config()->matrix.row_pins[row];
     if (pin != 0) {
         BMPAPI->gpio.clear_pin(pin);
+    }
+}
+
+static void unselect_row(uint8_t row) {
+    const uint8_t pin = BMPAPI->app.get_config()->matrix.row_pins[row];
+    if (pin != 0) {
+        BMPAPI->gpio.set_pin(pin);
     }
 }
 
@@ -73,7 +81,7 @@ static matrix_row_t read_col_pins(void) {
 static matrix_row_t read_row(uint8_t row) {
     select_row(row);
     matrix_row_t row_state = read_col_pins();
-    unselect_rows();
+    unselect_row(row);
     return row_state;
 }
 
@@ -82,6 +90,7 @@ static uint32_t scan_col2row(matrix_row_t *matrix_raw) {
     uint8_t                 matrix_offset = config->matrix.is_left_hand ? 0 : config->matrix.rows - get_device_row();
     uint32_t                change        = 0;
 
+    unselect_rows();
     for (uint8_t i = 0; i < config->matrix.device_rows; i++) {
         matrix_row_t row = read_row(i);
         if (matrix_raw[i + matrix_offset] != row) {
@@ -101,6 +110,13 @@ static void select_col(uint8_t col) {
     const uint8_t           pin    = config->matrix.col_pins[col];
     if (pin != 0) {
         BMPAPI->gpio.clear_pin(pin);
+    }
+}
+
+static void unselect_col(uint8_t col) {
+    const uint8_t pin = BMPAPI->app.get_config()->matrix.col_pins[col];
+    if (pin != 0) {
+        BMPAPI->gpio.set_pin(pin);
     }
 }
 
@@ -130,7 +146,7 @@ static matrix_col_t read_row_pins(void) {
 static matrix_col_t read_col(uint8_t col) {
     select_col(col);
     matrix_col_t col_state = read_row_pins();
-    unselect_cols();
+    unselect_col(col);
     return col_state;
 }
 
@@ -160,6 +176,7 @@ static matrix_row_t get_row2col_matrix(uint8_t row) {
 
 static void scan_row2col_matrix(void) {
     const bmp_api_config_t *config = BMPAPI->app.get_config();
+    unselect_cols();
     for (uint8_t i = 0; i < config->matrix.device_cols; i++) {
         matrix_col_t col = read_col(i);
         for (uint8_t j = 0; j < config->matrix.device_rows; j++) {

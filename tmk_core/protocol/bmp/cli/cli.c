@@ -144,7 +144,6 @@ static MSCMD_USER_RESULT usrcmd_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
 
 static MSCMD_USER_RESULT usrcmd_advertise(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
     char arg[4];
-    bmp_api_config_t const *const config = BMPAPI->app.get_config();
 
     if (msopt->argc >= 2) {
         msopt_get_argv(msopt, 1, arg, sizeof(arg));

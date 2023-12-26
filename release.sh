@@ -1,5 +1,5 @@
 #!/bin/sh
-version="1_0_8"
+version="1_1_0"
 make ble_micro_pro:vial:zip -j8
 make ble_micro_pro:vial_no_msc:zip -j8
 make sekigon/keyboard_quantizer/kqb:no_msc:zip -j8

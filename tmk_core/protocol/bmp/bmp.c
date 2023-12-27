@@ -186,6 +186,8 @@ void bmp_init(void) {
         BMPAPI->ble.set_nus_rcv_cb(nus_rcv_callback);
     }
 
+    bmp_state_controller_init();
+
     BMPAPI->usb.init(bmp_config, DISABLE_MSC);
     BMPAPI->ble.init(bmp_config);
     BMPAPI->logger.info("usb init");

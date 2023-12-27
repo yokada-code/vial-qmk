@@ -15,6 +15,7 @@ int bootloader_jump_counter = -1;
 static bool is_usb_connected_ = false;
 static bool is_usb_powered_   = false;
 static bool is_ble_connected_ = false;
+static bool is_event_driven_applicable_ = false;
 
 static uint32_t auto_sleep_timeout_ms = 0;
 
@@ -113,6 +114,27 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
     return BMP_OK;
 }
 
+static bool is_event_driven_applicable(void) {
+    if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW) {
+        for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
+            if (bmp_config->matrix.row_pins[i] == 5 || bmp_config->matrix.row_pins[i] == 6) {
+                return false;
+            }
+        }
+        return true;
+    } else if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW) {
+        for (int i = 0; i < bmp_config->matrix.device_cols; i++) {
+            if (bmp_config->matrix.col_pins[i] == 5 || bmp_config->matrix.col_pins[i] == 6) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+    return false;
+}
+
 static bool is_any_key_pressed(void) {
     uint8_t matrix_offset      = bmp_config->matrix.is_left_hand ? 0 : bmp_config->matrix.rows - bmp_matrix_get_device_row();
     bool    _is_any_key_pressed = false;
@@ -123,6 +145,10 @@ static bool is_any_key_pressed(void) {
     }
 
     return _is_any_key_pressed;
+}
+
+void bmp_state_controller_init(void) {
+    is_event_driven_applicable_ = is_event_driven_applicable();
 }
 
 void bmp_mode_transition_check(void) {
@@ -183,12 +209,12 @@ void bmp_schedule_next_task(void) {
         schedule_next_task_internal(MAINTASK_INTERVAL);
         last_key_press_time = timer_read32();
     } else {
-        if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW) {
+        if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_COL2ROW) {
             for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
                 writePinLow(bmp_config->matrix.row_pins[i]);
             }
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
-        } else if (bmp_config->matrix.diode_direction == MATRIX_ROW2COL) {
+        } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_ROW2COL) {
             for (int i = 0; i < bmp_config->matrix.device_cols; i++) {
                 writePinLow(bmp_config->matrix.col_pins[i]);
             }

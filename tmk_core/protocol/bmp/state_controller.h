@@ -21,6 +21,7 @@ uint32_t get_auto_sleep_timeout(void);
 bmp_error_t bmp_state_change_cb(bmp_api_event_t event);
 void bmp_mode_transition_check(void);
 
+void bmp_state_controller_init(void);
 void bmp_schedule_next_task(void);
 void bmp_set_enable_task_interval_stretch(bool enable);
 bool bmp_get_enable_task_interval_stretch(void);

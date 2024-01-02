@@ -26,6 +26,7 @@
 #include <string.h>
 #include "util.h"
 
+#include "bmp.h"
 #include "bmp_flash.h"
 #include "bmp_settings.h"
 #include "eeprom_bmp.h"
@@ -58,21 +59,8 @@
 #    define DYNAMIC_KEYMAP_EEPROM_ADDR DYNAMIC_KEYMAP_EEPROM_START
 #endif
 
-typedef struct {
-    uint32_t encoder_eeprom_addr;
-    uint32_t encoder_size;
-    uint32_t vial_qmk_setting_eeprom_addr;
-    uint32_t vial_tap_dance_eeprom_addr;
-    uint32_t vial_combo_eeprom_addr;
-    uint32_t vial_key_override_eeprom_addr;
-    uint32_t vial_macro_eeprom_addr;
-    uint32_t vial_macro_eeprom_size;
-    uint32_t bmp_settings_addr;
-    uint8_t  matrix_rows;
-    uint8_t  matrix_cols;
-    uint8_t  layer;
-} dynamic_keymap_config_t;
-dynamic_keymap_config_t dynamic_keymap_config;
+static dynamic_keymap_config_t dynamic_keymap_config;
+const dynamic_keymap_config_t *p_dynamic_keymap_config = &dynamic_keymap_config;
 
 #undef MATRIX_ROWS
 #undef MATRIX_COLS
@@ -136,26 +124,31 @@ dynamic_keymap_config_t dynamic_keymap_config;
 #endif
 
 #include "apidef.h"
-int bmp_dynamic_keymap_init(void) {
-    const bmp_api_config_t *config                      = BMPAPI->app.get_config();
-    dynamic_keymap_config.matrix_rows                   = config->matrix.rows;
-    dynamic_keymap_config.matrix_cols                   = config->matrix.cols;
-    dynamic_keymap_config.layer                         = config->matrix.layer;
-    dynamic_keymap_config.encoder_eeprom_addr           = DYNAMIC_KEYMAP_EEPROM_ADDR + (config->matrix.layer * config->matrix.rows * config->matrix.cols * 2);
-    dynamic_keymap_config.encoder_size                  = 2 * DYNAMIC_KEYMAP_LAYER_COUNT * sizeof(config->encoder.pin_a) / sizeof(config->encoder.pin_a[0]);
-    dynamic_keymap_config.vial_qmk_setting_eeprom_addr  = dynamic_keymap_config.encoder_eeprom_addr + dynamic_keymap_config.encoder_size;
-    dynamic_keymap_config.vial_tap_dance_eeprom_addr    = dynamic_keymap_config.vial_qmk_setting_eeprom_addr + VIAL_QMK_SETTINGS_SIZE;
-    dynamic_keymap_config.vial_combo_eeprom_addr        = dynamic_keymap_config.vial_tap_dance_eeprom_addr + VIAL_TAP_DANCE_SIZE;
-    dynamic_keymap_config.vial_key_override_eeprom_addr = dynamic_keymap_config.vial_combo_eeprom_addr + VIAL_COMBO_SIZE;
-    dynamic_keymap_config.vial_macro_eeprom_addr        = dynamic_keymap_config.vial_key_override_eeprom_addr + VIAL_KEY_OVERRIDE_SIZE;
 
-    if (dynamic_keymap_config.vial_macro_eeprom_addr >= TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE) {
-        return TOTAL_EEPROM_BYTE_COUNT - dynamic_keymap_config.vial_macro_eeprom_addr;
+int bmp_dynamic_keymap_calc_offset(const bmp_api_config_t *config, dynamic_keymap_config_t *keymap_config) {
+    keymap_config->matrix_rows                   = config->matrix.rows;
+    keymap_config->matrix_cols                   = config->matrix.cols;
+    keymap_config->layer                         = config->matrix.layer;
+    keymap_config->encoder_eeprom_addr           = DYNAMIC_KEYMAP_EEPROM_ADDR + (config->matrix.layer * config->matrix.rows * config->matrix.cols * 2);
+    keymap_config->encoder_size                  = 2 * DYNAMIC_KEYMAP_LAYER_COUNT * sizeof(config->encoder.pin_a) / sizeof(config->encoder.pin_a[0]);
+    keymap_config->vial_qmk_setting_eeprom_addr  = keymap_config->encoder_eeprom_addr + keymap_config->encoder_size;
+    keymap_config->vial_tap_dance_eeprom_addr    = keymap_config->vial_qmk_setting_eeprom_addr + VIAL_QMK_SETTINGS_SIZE;
+    keymap_config->vial_combo_eeprom_addr        = keymap_config->vial_tap_dance_eeprom_addr + VIAL_TAP_DANCE_SIZE;
+    keymap_config->vial_key_override_eeprom_addr = keymap_config->vial_combo_eeprom_addr + VIAL_COMBO_SIZE;
+    keymap_config->vial_macro_eeprom_addr        = keymap_config->vial_key_override_eeprom_addr + VIAL_KEY_OVERRIDE_SIZE;
+
+    if (keymap_config->vial_macro_eeprom_addr >= TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE) {
+        return TOTAL_EEPROM_BYTE_COUNT - keymap_config->vial_macro_eeprom_addr;
     }
 
-    dynamic_keymap_config.vial_macro_eeprom_size = TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE - dynamic_keymap_config.vial_macro_eeprom_addr;
+    keymap_config->vial_macro_eeprom_size = TOTAL_EEPROM_BYTE_COUNT - BMP_SETTINGS_SIZE - keymap_config->vial_macro_eeprom_addr;
 
     return 0;
+}
+
+int bmp_dynamic_keymap_init(void) {
+    const bmp_api_config_t *config = BMPAPI->app.get_config();
+    return bmp_dynamic_keymap_calc_offset(config, &dynamic_keymap_config);
 }
 
 uint8_t dynamic_keymap_get_layer_count(void) {

@@ -5,13 +5,30 @@
 #include "action.h"
 #include "quantum_keycodes.h"
 
+typedef struct {
+    uint32_t encoder_eeprom_addr;
+    uint32_t encoder_size;
+    uint32_t vial_qmk_setting_eeprom_addr;
+    uint32_t vial_tap_dance_eeprom_addr;
+    uint32_t vial_combo_eeprom_addr;
+    uint32_t vial_key_override_eeprom_addr;
+    uint32_t vial_macro_eeprom_addr;
+    uint32_t vial_macro_eeprom_size;
+    uint32_t bmp_settings_addr;
+    uint8_t  matrix_rows;
+    uint8_t  matrix_cols;
+    uint8_t  layer;
+} dynamic_keymap_config_t;
+
 bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
                           bmp_api_config_t *const       keyboard_config);
 void bmp_mode_transition_check(void);
 void bmp_keyboard_task(void);
 void bmp_init(void);
 int  bmp_dynamic_keymap_init(void);
+int  bmp_dynamic_keymap_calc_offset(const bmp_api_config_t *config, dynamic_keymap_config_t *keymap_config);
 
+extern const dynamic_keymap_config_t *p_dynamic_keymap_config;
 extern const bmp_api_config_t default_config;
 extern const bmp_api_config_t *bmp_config;
 

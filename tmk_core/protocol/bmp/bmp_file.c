@@ -6,11 +6,14 @@
 #include "print.h"
 #include "eeprom.h"
 
+#include "qmk_settings.h"
+
 #include "bmp_file.h"
 #include "bmp_vial.h"
 #include "eeconfig.h"
 #include "eeprom_bmp.h"
 #include "crc16.h"
+#include "bmp.h"
 
 bmp_file_t detect_file_type(const uint8_t *data, uint16_t len) {
     if (((const flash_vial_data_t *)data)->magic == BMP_VIAL_FLASH_PAGE_MAGIC) {
@@ -60,6 +63,13 @@ bmp_file_res_t write_bmp_file(bmp_file_t file_type, const uint8_t *data, uint32_
                 printf("crc received:%04lx calc:%04x\n", flash_vial_data.crc16, crc);
                 if (flash_vial_data.crc16 == crc) {
                     bmp_vial_save_config();
+
+                    dynamic_keymap_config_t new_dynamic_keymap_config;
+                    bmp_dynamic_keymap_calc_offset(&flash_vial_data.bmp_config, &new_dynamic_keymap_config);
+
+                    if (new_dynamic_keymap_config.vial_qmk_setting_eeprom_addr != p_dynamic_keymap_config->vial_qmk_setting_eeprom_addr) {
+                        qmk_settings_reset();
+                    }
                 }
 
                 return BMP_FILE_COMPLETE;

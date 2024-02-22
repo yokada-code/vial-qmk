@@ -1,0 +1,62 @@
+{
+    "manufacturer": "sekigon-gonnoc",
+    "keyboard_name": "GTRK67",
+    "maintainer": "sekigon-gonnoc",
+    "features": {
+        "pointing_device": true,
+        "rgblight": true
+    },
+    "qmk": {
+        "tap_keycode_delay": 10
+    },
+    "url": "",
+    "usb": {
+        "device_version": "1.0.0",
+        "pid": "0x778B",
+        "vid": "0xFEED"
+    },
+    "matrix_pins": {
+        "cols": [
+            14,
+            11,
+            5,
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN",
+            "NO_PIN"
+        ],
+        "rows": [
+            20,
+            19,
+            18,
+            17,
+            16
+        ]
+    },
+    "rgblight": {
+        "led_count": 1,
+        "animations": {
+            "breathing": true,
+            "rainbow_mood": true,
+            "rainbow_swirl": true,
+            "snake": true,
+            "knight": true,
+            "christmas": true,
+            "static_gradient": true,
+            "rgb_test": true,
+            "alternating": true,
+            "twinkle": true
+        }
+    },
+    "ws2812": {
+        "pin": 255
+    }
+}

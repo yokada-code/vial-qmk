@@ -36,6 +36,14 @@
 #    define BMP_FORCE_SAFE_MODE false
 #endif
 
+#ifndef BMP_DIODE_DIRECTION
+#    define BMP_DIODE_DIRECTION DIODE_DIRECTION
+#endif
+
+#ifndef BMP_STARTUP_ADVERTISE
+#    define BMP_STARTUP_ADVERTISE 0
+#endif
+
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
 #endif
@@ -70,7 +78,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .device_cols     = THIS_DEVICE_COLS,
                                                  .layer           = 8,
                                                  .debounce        = 1,
-                                                 .diode_direction = DIODE_DIRECTION == ROW2COL ? 1 : 0,
+                                                 .diode_direction = BMP_DIODE_DIRECTION,
                                                  .row_pins        = MATRIX_ROW_PINS,
                                                  .col_pins        = MATRIX_COL_PINS,
                                              },
@@ -81,6 +89,7 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                          .param_peripheral = {60, 30, 7},
                                          .param_central    = {60, 30, 7},
                                          .led              = {.pin = WS2812_DI_PIN, .num = 1},
+                                         .startup          = BMP_STARTUP_ADVERTISE,
 #ifdef CONFIG_RESERVED
                                          .reserved = CONFIG_RESERVED
 #endif

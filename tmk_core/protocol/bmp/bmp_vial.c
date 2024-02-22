@@ -123,9 +123,15 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
                 uint32_t page  = msg[2] + (msg[3] << 8);
                 uint32_t start = page * VIAL_RAW_EPSIZE;
                 uint32_t end   = start + VIAL_RAW_EPSIZE;
+#ifdef BMP_USE_DEFAULT_VIAL_CONFIG
+                if (end < start || start >= sizeof(keyboard_definition)) break;
+                if (end > sizeof(keyboard_definition)) end = sizeof(keyboard_definition);
+                memcpy(msg, &keyboard_definition[start], end - start);
+#else
                 if (end < start || start >= flash_vial_data.len) break;
                 if (end > flash_vial_data.len) end = flash_vial_data.len;
                 memcpy(msg, &flash_vial_data.vial_data[start], end - start);
+#endif
                 break;
             }
         }

@@ -118,6 +118,9 @@ typedef enum {
     MATRIX_ROW2COL_LPME,
     MATRIX_COL2ROW2COL,
     MATRIX_ROW2COL2ROW,
+    MATRIX_74HC164ROW,
+    MATRIX_74HC164COL,
+    BMP_MATRIX_CUSTOM,
 } bmp_api_diode_direction_t;
 
 typedef struct {

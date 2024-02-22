@@ -24,6 +24,7 @@ SRC += $(BMP_DIR)/matrix/matrix.c
 SRC += $(BMP_DIR)/matrix/matrix_basic.c
 SRC += $(BMP_DIR)/matrix/matrix_duplex.c
 SRC += $(BMP_DIR)/matrix/matrix_lpme.c
+SRC += $(BMP_DIR)/matrix/matrix_74hc164.c
 SRC += $(BMP_DIR)/matrix/lpme.c
 SRC += $(BMP_DIR)/matrix/bmp_debounce.c
 SRC += $(BMP_DIR)/cli/cli.c

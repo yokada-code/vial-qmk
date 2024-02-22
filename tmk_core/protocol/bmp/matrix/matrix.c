@@ -38,6 +38,8 @@ extern const bmp_matrix_func_t  matrix_func_row2col_lpme;
 extern const bmp_matrix_func_t  matrix_func_col2row_lpme;
 extern const bmp_matrix_func_t  matrix_func_row2col2row;
 extern const bmp_matrix_func_t  matrix_func_col2row2col;
+extern const bmp_matrix_func_t matrix_func_74hc164row2col;
+extern const bmp_matrix_func_t matrix_func_74hc164col2row;
 
 extern int reset_counter;
 #define BOOTPIN 22
@@ -105,6 +107,12 @@ void matrix_init(void) {
                 break;
             case MATRIX_ROW2COL2ROW:
                 matrix_func = &matrix_func_row2col2row;
+                break;
+            case MATRIX_74HC164ROW:
+                matrix_func = &matrix_func_74hc164col2row;
+                break;
+            case MATRIX_74HC164COL:
+                matrix_func = &matrix_func_74hc164row2col;
                 break;
             default:
                 matrix_func = &matrix_func_row2col;

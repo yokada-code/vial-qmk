@@ -36,15 +36,17 @@ void flash_read(uint32_t addr, uint8_t *data, uint32_t len) {
     BMPAPI->flash.read(addr, data, len);
 }
 
-void flash_erase_page(uint32_t page) {
+int flash_erase_page(uint32_t page) {
     int retry = 3;
     int res   = 0;
     while (1) {
         res = BMPAPI->flash.erase_page(page);
         if (res == 0 || --retry == 0) {
-            break;
+            return 0;
         }
         wait_us(10000);
         BMPAPI->app.process_task();
     }
+
+    return -1;
 }

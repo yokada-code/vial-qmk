@@ -78,6 +78,8 @@ void matrix_init_kb() {
     matrix_init_user();
 }
 
+static const uint16_t   default_tb_cpi = 540;
+static uint16_t         tb_cpi         = default_tb_cpi;
 static trackball_info_t tb_info;
 
 const trackball_info_t *get_trackball_info() { return &tb_info; }
@@ -143,12 +145,28 @@ void matrix_scan_kb() {
         } else {
             trackball_data_t data0 = trackball_get(CS_PIN_TB0);
             last_read_time = timer_read32();
-            tb_info.x    = via_get_layout_options() == 1 ? -data0.y : data0.y;
-            tb_info.y    = via_get_layout_options() == 1 ? -data0.x : data0.x;
+            // swap x-y axis
+            tb_info.x = data0.y;
+            tb_info.y = data0.x;
+
+            if (via_get_layout_options() == 1) {
+                tb_info.x = -tb_info.y;
+                tb_info.y = -tb_info.x;
+            }
 
             tb_info.motion_flag = ((data0.stat & 0x08) == 0) ? 0x80 : 0;
             if (tb_info.motion_flag & 0x80) {
                 last_motion_time = timer_read32();
+
+                static int32_t x_surplus, y_surplus;
+                int32_t scaled_x = (int32_t)(tb_info.x + x_surplus) * tb_cpi / default_tb_cpi;
+                int32_t scaled_y = (int32_t)(tb_info.y + y_surplus) * tb_cpi / default_tb_cpi;
+
+                x_surplus = (int32_t)(tb_info.x + x_surplus) - scaled_x * default_tb_cpi / tb_cpi;
+                y_surplus = (int32_t)(tb_info.y + y_surplus) - scaled_y * default_tb_cpi / tb_cpi;
+
+                tb_info.x = scaled_x;
+                tb_info.y = scaled_y;
             }
 
             if (cnt++ % 10 == 0) {
@@ -226,20 +244,10 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     }
 }
 
-static report_mouse_t mouse_report_override;
-static bool           mouse_report_override_flag;
-void                  override_mouse_report(report_mouse_t report) {
-    mouse_report_override      = report;
-    mouse_report_override_flag = true;
-}
-
 void pointing_device_driver_init(void) {}
 
 report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
-    if (mouse_report_override_flag) {
-        mouse_report_override_flag = false;
-        return mouse_report_override;
-    } else if (tb_info.motion_flag & 0x80) {
+    if (tb_info.motion_flag & 0x80) {
         mouse_report.x = tb_info.x;
         mouse_report.y = tb_info.y;
     }
@@ -248,6 +256,9 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
 }
 
 uint16_t pointing_device_driver_get_cpi(void) {
-    return 0;
+    return tb_cpi;
 }
-void pointing_device_driver_set_cpi(uint16_t cpi) {}
+
+void pointing_device_driver_set_cpi(uint16_t cpi) {
+    tb_cpi = cpi;
+}

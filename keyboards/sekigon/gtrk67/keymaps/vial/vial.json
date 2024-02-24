@@ -281,6 +281,11 @@
       "name": "ENABLE_JP_KEY_ON_US_OS_OVERRIDE",
       "title": "Enable JP keyboard on US OS override",
       "shortName": "JU\nOVR"
+    },
+    {
+      "name": "ENABLE_DRAG_SCROLL_ON_HOLD",
+      "title": "Enable drag scroll on hold",
+      "shortName": "DRAG\nSCROLL"
     }
   ]
 }

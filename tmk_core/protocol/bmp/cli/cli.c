@@ -359,15 +359,18 @@ static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usro
             return 0;
         }
     }
-    printf("Usage: vial [on/off]");
+    printf("Usage: vial [on/off]\n");
     return 0;
 }
 
 static MSCMD_USER_RESULT usrcmd_factory_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
     printf("Erasing all setting files...\n");
     for (int page = 0; page < FLASH_PAGE_ID_END; page++) {
-        flash_erase_page(page);
+        int res = flash_erase_page(page);
+        printf("Erase page%d: %s\n", page, res == 0 ? "OK" : "NG");
     }
+    BMPAPI->ble.delete_bond(255);
+    printf("Erase all pairing info\n");
 
     return 0;
 }

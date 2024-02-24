@@ -4,14 +4,30 @@
 #include "bmp.h"
 #include "bmp_custom_keycodes.h"
 
-uint8_t tb_scrl_flag = false;
-int16_t tb_div = 1;
+uint8_t set_scrolling = false;
 
 enum {
-    SCROLL_MODE = BMP_SAFE_RANGE,
+    DRAG_SCROLL = BMP_SAFE_RANGE,
 };
 
-const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {KC_NO};
+// Disable BMP dynamic matrix size
+#undef MATRIX_ROWS
+#define MATRIX_ROWS MATRIX_ROWS_DEFAULT
+#undef MATRIX_COLS
+#define MATRIX_COLS MATRIX_COLS_DEFAULT
+
+const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+    [0] = LAYOUT(KC_ESC, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_MINS, KC_EQL, KC_INT3, KC_BSPC,
+                KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, KC_LBRC, KC_RBRC, KC_ENT,
+                KC_LCTL, KC_A, KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT, KC_BSLS,
+                KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_INT1, KC_UP, KC_RSFT,
+                MO(1), KC_GRV, KC_LGUI, KC_LALT, KC_INT5, KC_SPC, KC_SPC, KC_INT4, KC_INT2, KC_RALT, MO(1), KC_LEFT, KC_DOWN, KC_RGHT),
+    [1] = LAYOUT(KC_PWR, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_F11, KC_F12, KC_INS, KC_DEL,
+                KC_CAPS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_BTN1, KC_BTN2, KC_PSCR, KC_SCRL, KC_PAUS, KC_UP, KC_TRNS, KC_TRNS,
+                KC_TRNS, KC_VOLD, KC_VOLU, KC_MUTE, KC_EJCT, KC_TRNS, KC_PAST, KC_PSLS, KC_HOME, KC_PGUP, KC_LEFT, KC_RGHT, KC_TRNS,
+                KC_TRNS, AD_WO_L, SEL_BLE, SEL_USB, KC_TRNS, KC_TRNS, KC_PPLS, KC_PMNS, KC_END, KC_PGDN, KC_DOWN, KC_TRNS, KC_RSFT, KC_TRNS,
+                KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_DEL, KC_LGUI, KC_RCTL)
+};
 
 void pointing_device_init_user(void) {
     set_auto_mouse_layer(3);
@@ -22,7 +38,7 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record) {
     switch(keycode) {
         case KC_LEFT_CTRL...KC_RIGHT_GUI:
             return true;
-        case SCROLL_MODE:
+        case DRAG_SCROLL:
             return true;  
         default:
             return false;
@@ -30,64 +46,19 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record) {
     return false;
 }
 
-static inline int sgn(int16_t x) {
-    if (x > 0) {
-        return 1;
-    } else if (x < 0) {
-        return -1;
-    } else {
-        return 0;
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    if (set_scrolling) {
+        mouse_report.h = mouse_report.x;
+        mouse_report.v = -mouse_report.y;
+        mouse_report.x = 0;
+        mouse_report.y = 0;
     }
-}
-
-void matrix_scan_user(void) {
-    static int16_t          x_surplus, y_surplus;
-    static uint32_t         cnt;
-    const trackball_info_t *tb_info = get_trackball_info();
-    report_mouse_t          mouse_rep;
-
-    if (tb_info->motion_flag & 0x80) {
-        if (!tb_scrl_flag) {
-            mouse_rep.h = 0;
-            mouse_rep.v = 0;
-            mouse_rep.x = (tb_info->x + x_surplus) / tb_div;
-            mouse_rep.y = (tb_info->y + y_surplus) / tb_div;
-
-            x_surplus = (tb_info->x + x_surplus) % tb_div;
-            y_surplus = (tb_info->y + y_surplus) % tb_div;
-        } else {
-            mouse_rep.h = 1 * sgn((tb_info->x + x_surplus) / tb_div);
-            mouse_rep.v = -1 * sgn((tb_info->y + y_surplus) / tb_div);
-            mouse_rep.x = 0;
-            mouse_rep.y = 0;
-
-            x_surplus = (tb_info->x + x_surplus) % tb_div;
-            y_surplus = (tb_info->y + y_surplus) % tb_div;
-        }
-
-        if (++cnt % 10 == 0) {
-            if (debug_mouse) dprintf("0x%2x: %6d %6d %3d\n", tb_info->motion_flag, tb_info->x, tb_info->y, tb_info->surface);
-        }
-
-        override_mouse_report(mouse_rep);
-    }
+    return mouse_report;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        switch (keycode) {
-            case SCROLL_MODE:
-                dprintf("enable scroll mode\n");
-                tb_scrl_flag = true;
-                return false;
-        }
-    } else {
-        switch (keycode) {
-            case SCROLL_MODE:
-                dprintf("disable scroll mode\n");
-                tb_scrl_flag = false;
-                return false;
-        }
+    if (keycode == DRAG_SCROLL) {
+        set_scrolling = record->event.pressed;
     }
 
     return true;

@@ -283,9 +283,9 @@
       "shortName": "JU\nOVR"
     },
     {
-      "name": "Scroll mode",
-      "title": "Scroll mode",
-      "shortName": "SCR\nMODE"
+      "name": "ENABLE_DRAG_SCROLL_ON_HOLD",
+      "title": "Enable drag scroll on hold",
+      "shortName": "DRAG\nSCROLL"
     }
   ]
 }

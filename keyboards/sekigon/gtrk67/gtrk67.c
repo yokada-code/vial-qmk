@@ -197,12 +197,13 @@ bool checkSafemodeFlag(bmp_api_config_t const *const config) { return false; }
 bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
                           bmp_api_config_t *const       keyboard_config) {
     // User can overwrite partial settings
-    const bmp_api_ble_conn_param_t conn = {.max_interval = 20, .min_interval = 20, .slave_latency = 25};
-    keyboard_config->startup          = config_on_storage->startup;
-    keyboard_config->matrix.debounce  = config_on_storage->matrix.debounce;
-    // keyboard_config->param_central    = conn;
-    keyboard_config->param_peripheral = conn;
-    keyboard_config->reserved[2]      = config_on_storage->reserved[2];
+    bmp_api_config_t               new_config = default_config;
+    const bmp_api_ble_conn_param_t conn       = {.max_interval = 20, .min_interval = 20, .slave_latency = 25};
+    new_config.startup                        = config_on_storage->startup;
+    new_config.matrix.debounce                = config_on_storage->matrix.debounce;
+    new_config.param_peripheral               = conn;
+    new_config.reserved[2]                    = config_on_storage->reserved[2];
+    *keyboard_config                          = new_config;
     return true;
 }
 

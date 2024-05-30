@@ -215,7 +215,7 @@ void bmp_schedule_next_task(void) {
     if (is_any_key_pressed()) {
         last_key_press_time = timer_read32();
         schedule_next_task_internal(MAINTASK_INTERVAL);
-    } else if (timer_elapsed32(last_key_press_time) < MATRIX_SCAN_TIME_MS //
+    } else if (timer_elapsed32(last_key_press_time) < MAINTASK_INTERVAL //
                || !task_interval_stretch) {
         schedule_next_task_internal(MAINTASK_INTERVAL);
     } else {

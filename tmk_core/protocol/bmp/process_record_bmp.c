@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "action.h"
+#include "bmp.h"
 #include "send_string.h"
 #include "print.h"
 #include "vial.h"
@@ -65,7 +66,10 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
                 return false;
             case BATT_LV: {
                 char str[16];
-                snprintf(str, sizeof(str), "%4dmV", BMPAPI->app.get_vcc_mv());
+                snprintf(str, sizeof(str), "%4dmV", BMPAPI->app.get_vcc_mv(0));
+                if (bmp_config->mode == SPLIT_MASTER) {
+                    snprintf(str + 6, sizeof(str) - 6, " %4dmV", BMPAPI->app.get_vcc_mv(1));
+                }
                 send_string(str);
                 return false;
             }

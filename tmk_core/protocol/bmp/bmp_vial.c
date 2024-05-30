@@ -13,12 +13,16 @@
 #include "raw_hid.h"
 #include "apidef.h"
 
+#ifndef BMP_VIAL_MODE_DEFAULT
+#    define BMP_VIAL_MODE_DEFAULT false
+#endif
+
 extern void raw_hid_receive_qmk(uint8_t *data, uint8_t length); // VIA implementation in original qmk
 
 _Static_assert(sizeof(flash_vial_data_t) == BMP_USER_FLASH_PAGE_SIZE, "Invalid size");
 _Static_assert(sizeof(bmp_api_config_t) == 192, "Invalid size");
 flash_vial_data_t flash_vial_data;
-bool              is_vial_enabled;
+bool              is_vial_enabled = BMP_VIAL_MODE_DEFAULT;
 
 void bmp_vial_data_init(void) {
     const uint8_t lzma_header[] = {0xfd, 0x37, 0x7a, 0x58, 0x5a};
@@ -110,7 +114,11 @@ static bool pre_raw_hid_receive(uint8_t *msg, uint8_t len) {
 
             case vial_get_size: {
                 _continue   = false;
+#ifdef BMP_USE_DEFAULT_VIAL_CONFIG
+                uint32_t sz = sizeof(keyboard_definition);
+#else
                 uint32_t sz = flash_vial_data.len;
+#endif
                 msg[0]      = sz & 0xFF;
                 msg[1]      = (sz >> 8) & 0xFF;
                 msg[2]      = (sz >> 16) & 0xFF;

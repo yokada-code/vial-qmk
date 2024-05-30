@@ -6,7 +6,7 @@
 
 #include "error_def.h"
 
-#define API_VERSION 15
+#define API_VERSION 17
 #define CONFIG_VERSION 3
 #define PINS_MAX 32
 
@@ -46,6 +46,7 @@ typedef struct {
     uint8_t            mosi;
     uint8_t            sck;
     uint8_t            mode;
+    uint8_t            half_duplex_pin;
 } bmp_api_spim_config_t;
 
 typedef struct {
@@ -109,6 +110,7 @@ typedef enum {
     USB_CDC_ACM_OPEND,
     USB_CDC_ACM_CLOSED,
     USB_HID_READY,
+    BMP_LOW_BATTERY,
 } bmp_api_event_t;
 
 typedef enum {
@@ -163,7 +165,14 @@ typedef struct {
     bmp_api_ble_conn_param_t param_central;  // for split master
     bmp_api_led_config_t     led;
     bmp_api_encoder_config_t encoder;
-    uint8_t                  reserved[8];
+    union {
+        uint8_t reserved[8];
+        struct {
+            uint8_t reserved_0;
+            uint8_t indicator_led;
+            uint8_t autosleep;
+        };
+    };
 } bmp_api_config_t;
 #define BMP_API_CONFIG_SIZE sizeof(bmp_api_config_t)
 
@@ -175,8 +184,10 @@ typedef struct {
 
 typedef struct {
     uint8_t buttons;
-    int8_t  x;
-    int8_t  y;
+    int8_t  boot_x;
+    int8_t  boot_y;
+    int16_t x;
+    int16_t y;
     int8_t  v;
     int8_t  h;
 } __attribute__((packed)) bmp_api_mouse_report_t;
@@ -233,7 +244,7 @@ typedef struct {
                                     uint8_t burst_threshold);
     bmp_error_t (*set_config)(bmp_api_config_t const* const);
     const bmp_api_config_t* (*get_config)(void);
-    uint16_t (*get_vcc_mv)(void);
+    uint16_t (*get_vcc_mv)(uint8_t is_slave);
     uint16_t (*get_vcc_percent)(void);
     bmp_error_t (*set_state_change_cb)(bmp_api_state_change_cb_t);
 } bmp_api_app_t;
@@ -289,6 +300,8 @@ typedef struct {
 typedef enum {
     BMP_MODE_INPUT,
     BMP_MODE_OUTPUT,
+    BMP_MODE_INOUT,
+    BMP_MODE_DEFAULT,
 } bmp_api_gpio_dir_t;
 
 typedef enum {

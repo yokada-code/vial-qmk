@@ -1,6 +1,7 @@
 PROTOCOL_DIR = protocol
 BMP_DIR = $(PROTOCOL_DIR)/bmp
 OPT_DEFS += -UNO_DEBUG
+CFLAGS += -DMOUSE_EXTENDED_REPORT
 
 SRC := $(filter-out $(QUANTUM_DIR)/dynamic_keymap.c, $(SRC))
 SRC := $(filter-out $(QUANTUM_DIR)/encoder.c, $(SRC))

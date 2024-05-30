@@ -42,6 +42,9 @@ __attribute__((weak)) void bmp_enter_sleep(void) {
     bmp_before_sleep();
     BMPAPI->app.enter_sleep_mode();
 }
+__attribute__((weak)) void bmp_before_shutdown(void) {
+    bmp_before_sleep();
+}
 
 __attribute__((weak)) void bmp_state_change_cb_user(bmp_api_event_t event) {}
 __attribute__((weak)) void bmp_state_change_cb_kb(bmp_api_event_t event) {
@@ -103,6 +106,10 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
             // if (is_usb_connected()) {
             //     select_usb();
             // }
+            break;
+
+        case BMP_LOW_BATTERY:
+            bmp_before_shutdown();
             break;
 
         default:
@@ -205,9 +212,12 @@ static void schedule_next_task_internal(uint32_t interval_ms) {
 void bmp_schedule_next_task(void) {
     static uint32_t last_key_press_time;
 
-    if (is_any_key_pressed() || !task_interval_stretch) {
-        schedule_next_task_internal(MAINTASK_INTERVAL);
+    if (is_any_key_pressed()) {
         last_key_press_time = timer_read32();
+        schedule_next_task_internal(MAINTASK_INTERVAL);
+    } else if (timer_elapsed32(last_key_press_time) < MATRIX_SCAN_TIME_MS //
+               || !task_interval_stretch) {
+        schedule_next_task_internal(MAINTASK_INTERVAL);
     } else {
         if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_COL2ROW){
             for (int i = 0; i < bmp_config->matrix.device_rows; i++) {

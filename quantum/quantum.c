@@ -120,8 +120,10 @@ void do_code16(uint16_t code, void (*f)(uint8_t)) {
 __attribute__((weak)) void register_code16(uint16_t code) {
     if (IS_MODIFIER_KEYCODE(code) || code == KC_NO) {
         do_code16(code, register_mods);
+        wait_ms(QS_tap_code_delay);
     } else {
         do_code16(code, register_weak_mods);
+        wait_ms(QS_tap_code_delay);
     }
     register_code(code);
 }

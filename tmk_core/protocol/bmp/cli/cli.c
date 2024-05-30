@@ -45,6 +45,7 @@ static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT u
 static MSCMD_USER_RESULT usrcmd_start_xmodem(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_enable_vial(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 static MSCMD_USER_RESULT usrcmd_factory_reset(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+static MSCMD_USER_RESULT usrcmd_battery_check(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
 
 static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this message"},
                                             {"version", usrcmd_version, "Firmware version"},
@@ -62,6 +63,7 @@ static const MSCMD_COMMAND_TABLE table[] = {{"help", usrcmd_help, "Show this mes
                                             {"xmodem", usrcmd_start_xmodem, "Start XMODEM"},
                                             {"vial", usrcmd_enable_vial, "Enable/Disable vial"},
                                             {"factory_reset", usrcmd_factory_reset, "Factory reset"},
+                                            {"battery", usrcmd_battery_check, "Battery check"},
 #ifdef USER_DEFINED_MSCMD
                                             USER_DEFINED_MSCMD
 #endif
@@ -235,8 +237,8 @@ static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
            bmp_config->matrix.is_left_hand,
            bmp_config->matrix.debounce,               //
            bmp_config->reserved[2] * 10,                   //
-           bmp_config->param_peripheral.max_interval, //
-           bmp_config->param_central.max_interval);
+           bmp_config->param_peripheral.min_interval, //
+           bmp_config->param_central.min_interval);
     return 0;
 }
 
@@ -312,6 +314,8 @@ static MSCMD_USER_RESULT usrcmd_eeprom_default(MSOPT *msopt, MSCMD_USER_OBJECT u
             eeprom_bmp_save_default();
         } else if (strcmp(arg, "load") == 0) {
             eeprom_bmp_load_default();
+        } else if (strcmp(arg, "erase") == 0) {
+            eeprom_bmp_erase_default();
         }
     }
 
@@ -371,6 +375,15 @@ static MSCMD_USER_RESULT usrcmd_factory_reset(MSOPT *msopt, MSCMD_USER_OBJECT us
     }
     BMPAPI->ble.delete_bond(255);
     printf("Erase all pairing info\n");
+
+    return 0;
+}
+
+static MSCMD_USER_RESULT usrcmd_battery_check(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    printf("%d mv\n", BMPAPI->app.get_vcc_mv(0));
+    if (bmp_config->mode == SPLIT_MASTER) {
+        printf("slave: %4dmV\n", BMPAPI->app.get_vcc_mv(1));
+    }
 
     return 0;
 }

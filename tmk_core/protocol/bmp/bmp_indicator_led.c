@@ -37,6 +37,10 @@ typedef struct {
     int32_t option;
 } bmp_indicator_pattern_t;
 
+#ifndef BMP_INDICATOR_INVERT
+#    define BMP_INDICATOR_INVERT 0
+#endif
+
 #define INDICATOR_STACK_LEN 3
 static bmp_indicator_pattern_t indicator_stack[INDICATOR_STACK_LEN];
 static uint8_t indicator_stack_cnt = 0;
@@ -203,6 +207,7 @@ void bmp_indicator_init(uint8_t led_pin) {
     indicator_led = led_pin;
 }
 
+#if BMP_INDICATOR_INVERT == 0
 void bmp_indicator_led_on() {
     writePinHigh(indicator_led);
 }
@@ -210,4 +215,12 @@ void bmp_indicator_led_on() {
 void bmp_indicator_led_off() {
     writePinLow(indicator_led);
 }
+#else
+void bmp_indicator_led_on() {
+    writePinLow(indicator_led);
+}
 
+void bmp_indicator_led_off() {
+    writePinHigh(indicator_led);
+}
+#endif

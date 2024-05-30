@@ -222,3 +222,10 @@ void eeprom_bmp_save_default(void) {
     flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT0, (uint32_t *)flash_data.page0);
     flash_write_page(FLASH_PAGE_ID_EEPROM_DEFAULT1, (uint32_t *)flash_data.page1);
 }
+
+
+void eeprom_bmp_erase_default(void) {
+    // Erase data
+    flash_erase_page(FLASH_PAGE_ID_EEPROM_DEFAULT0);
+    flash_erase_page(FLASH_PAGE_ID_EEPROM_DEFAULT1);
+}

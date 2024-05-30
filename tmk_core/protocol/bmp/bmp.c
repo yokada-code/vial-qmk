@@ -44,6 +44,10 @@
 #    define BMP_STARTUP_ADVERTISE 0
 #endif
 
+#ifndef BMP_DEBOUNCE
+#    define BMP_DEBOUNCE 1
+#endif
+
 #ifndef MATRIX_SCAN_TIME_MS
 #    define MATRIX_SCAN_TIME_MS 17
 #endif
@@ -77,10 +81,11 @@ const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
                                                  .device_rows     = THIS_DEVICE_ROWS,
                                                  .device_cols     = THIS_DEVICE_COLS,
                                                  .layer           = 8,
-                                                 .debounce        = 1,
+                                                 .debounce        = BMP_DEBOUNCE,
                                                  .diode_direction = BMP_DIODE_DIRECTION,
                                                  .row_pins        = MATRIX_ROW_PINS,
                                                  .col_pins        = MATRIX_COL_PINS,
+                                                 .is_left_hand    = true,
                                              },
                                          .encoder = {
                                             .pin_a = ENCODERS_PAD_A,
@@ -246,7 +251,7 @@ void protocol_pre_init(void) {
 void protocol_post_init(void) {
     rgblight_set_clipping_range(0, bmp_config->led.num);
     rgblight_set_effect_range(0, bmp_config->led.num);
-    bmp_indicator_init(bmp_config->reserved[1]);
+    bmp_indicator_init(bmp_config->indicator_led);
 
     eeprom_bmp_flush();
     eeprom_bmp_set_cache_mode(EEPROM_BMP_CACHE_WRITE_THROUGH);

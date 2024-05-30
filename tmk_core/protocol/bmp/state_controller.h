@@ -27,3 +27,5 @@ void bmp_set_enable_task_interval_stretch(bool enable);
 bool bmp_get_enable_task_interval_stretch(void);
 
 extern int sleep_enter_counter;
+
+bool get_ble_enabled(void);

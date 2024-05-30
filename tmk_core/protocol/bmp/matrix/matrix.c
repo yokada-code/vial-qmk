@@ -25,7 +25,7 @@ extern const uint8_t MAINTASK_INTERVAL;
 /* matrix state(1:on, 0:off) */
 _Static_assert(sizeof(matrix_row_t) == 4, "Invalid row size");
 #define DEFAULT_MATRIX_ROWS 32
-static matrix_row_t matrix[DEFAULT_MATRIX_ROWS];
+matrix_row_t        matrix[DEFAULT_MATRIX_ROWS];
 static matrix_row_t matrix_dummy[DEFAULT_MATRIX_ROWS];
 static matrix_row_t matrix_debouncing[DEFAULT_MATRIX_ROWS];
 matrix_row_t        matrix_row2col[DEFAULT_MATRIX_ROWS];
@@ -168,7 +168,7 @@ __attribute__((weak)) uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
         dprintf("\n");
     }
 
-    uint32_t pop_cnt = BMPAPI->app.pop_keystate_change(key_state, sizeof(key_state) / sizeof(key_state[0]), config->param_central.max_interval);
+    uint32_t pop_cnt = BMPAPI->app.pop_keystate_change(key_state, sizeof(key_state) / sizeof(key_state[0]), MAINTASK_INTERVAL);
 
     for (uint32_t i = 0; i < pop_cnt; i++) {
         if (key_state[i].state == 0) {

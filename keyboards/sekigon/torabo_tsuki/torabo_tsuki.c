@@ -37,6 +37,8 @@
 
 eeconfig_kb_t eeconfig_kb;
 
+static bool trackball_initialized;
+
 bmp_api_ble_conn_param_t get_periph_conn_param(uint8_t mode) {
     const bmp_api_ble_conn_param_t param[MODE_COUNT] = {
         {.max_interval = BLE_INTERVAL_MASTER_0, .min_interval = BLE_INTERVAL_MASTER_0, .slave_latency = MAX_INTERVAL_MASTER / BLE_INTERVAL_MASTER_0}, //
@@ -87,6 +89,12 @@ void keyboard_post_init_kb(void) {
     new_config.param_central    = get_central_conn_param(eeconfig_kb.battery.mode);
     new_config.param_peripheral = get_periph_conn_param(eeconfig_kb.battery.mode);
     BMPAPI->app.set_config(&new_config);
+
+    static char status[8];
+    if (is_keyboard_master()) {
+        snprintf(status, sizeof(status), "%s", trackball_initialized ? "OK" : "NG");
+        BMPAPI->usb.create_file("STATUS  TXT", (uint8_t *)status, strlen(status));
+    }
 }
 
 void matrix_init_kb() {
@@ -199,7 +207,7 @@ void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
 }
 
 void pointing_device_driver_init(void) {
-    trackball_init(CS_PIN_TB0);
+    trackball_initialized = (trackball_init(CS_PIN_TB0) == 0);
 }
 
 static uint32_t       rate_limit_start = 0;

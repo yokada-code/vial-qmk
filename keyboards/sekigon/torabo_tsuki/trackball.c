@@ -101,6 +101,8 @@ int trackball_init(uint8_t cs_pin) {
     read_reg(REG_ADDR_Y_L);
     read_reg(REG_ADDR_XY_H);
 
+    res = read_reg(REG_ADDR_PROD_ID) == 0x3e ? 0 : 1;
+
     // 8ms, 8ms, 8ms
     write_reg(REG_ADDR_PERFORMANCE, 0);
 

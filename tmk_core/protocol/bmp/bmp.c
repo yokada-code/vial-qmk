@@ -293,17 +293,13 @@ void protocol_post_task(void) {
     bmp_mode_transition_check();
 }
 
-void protocol_task(void) {
-    protocol_pre_task();
-
+void protocol_keyboard_task(void) {
     if (do_keyboard_task) {
         do_keyboard_task = false;
         keyboard_task();
         bmp_post_keyboard_task();
         bmp_schedule_next_task();
     }
-
-    protocol_post_task();
 }
 
 void raw_hid_task(void) {}

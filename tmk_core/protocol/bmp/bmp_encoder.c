@@ -64,7 +64,7 @@ void encoder_init(void) {
     }
 }
 
-bool encoder_read(void) {
+bool encoder_task(void) {
     bool changed = false;
 
     for (int index = 0; index < encoder_count; index++) {

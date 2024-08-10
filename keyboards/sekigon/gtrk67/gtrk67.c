@@ -39,40 +39,40 @@ void keyboard_post_init_kb(void) { debug_enable = false; }
 
 void matrix_init_kb() {
 
-    writePinHigh(CS_PIN_TB0);
-    writePinLow(SPI_SCK);
-    writePinLow(SPI_MOSI);
-    setPinOutput(CS_PIN_TB0);
-    setPinOutput(SPI_SCK);
-    setPinOutput(SPI_MOSI);
+    gpio_write_pin_high(CS_PIN_TB0);
+    gpio_write_pin_low(SPI_SCK);
+    gpio_write_pin_low(SPI_MOSI);
+    gpio_set_pin_output_push_pull(CS_PIN_TB0);
+    gpio_set_pin_output_push_pull(SPI_SCK);
+    gpio_set_pin_output_push_pull(SPI_MOSI);
 
     // turn off trackball
-    setPinOutput(TB_POW);
-    writePinHigh(TB_POW);
+    gpio_set_pin_output_push_pull(TB_POW);
+    gpio_write_pin_high(TB_POW);
 
     // reset io expanders
-    setPinOutput(IO_RESET);
-    writePinLow(IO_RESET);
+    gpio_set_pin_output_push_pull(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
 
-    writePinHigh(SR_DATA);
-    writePinLow(SR_CLK);
-    setPinOutput(SR_DATA);
-    setPinOutput(SR_CLK);
+    gpio_write_pin_high(SR_DATA);
+    gpio_write_pin_low(SR_CLK);
+    gpio_set_pin_output_push_pull(SR_DATA);
+    gpio_set_pin_output_push_pull(SR_CLK);
 
-    writePinHigh(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 
     // turn on trackball
-    // writePinLow(TB_POW);
+    // gpio_write_pin_low(TB_POW);
 
-    writePinHigh(SR_POW);
-    setPinOutput(SR_POW);
+    gpio_write_pin_high(SR_POW);
+    gpio_set_pin_output_push_pull(SR_POW);
 
     setPinInputNopull(SPI_MISO);
 
-    writePinHigh(SR_DATA);
+    gpio_write_pin_high(SR_DATA);
     for (int idx = 0; idx < 16; idx++) {
-        writePinHigh(SR_CLK);
-        writePinLow(SR_CLK);
+        gpio_write_pin_high(SR_CLK);
+        gpio_write_pin_low(SR_CLK);
     }
 
     matrix_init_user();
@@ -97,10 +97,10 @@ void matrix_scan_kb() {
     const int wait1 = 120;
     const int wait2 = 250;
     if (initialize_step < 2) {
-        writePinHigh(TB_POW);
+        gpio_write_pin_high(TB_POW);
         initialize_step++;
     } else if (initialize_step < wait0) {
-        writePinLow(TB_POW);
+        gpio_write_pin_low(TB_POW);
         initialize_step++;
     } else if (initialize_step == wait0) {
         spim_init();
@@ -186,10 +186,10 @@ void matrix_scan_kb() {
 
 void bmp_before_sleep(void) {
     // turn off trackball
-    writePinHigh(TB_POW);
+    gpio_write_pin_high(TB_POW);
     // clear all cols
-    writePinLow(IO_RESET);
-    writePinHigh(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 }
 
 bool checkSafemodeFlag(bmp_api_config_t const *const config) { return false; }

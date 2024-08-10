@@ -249,8 +249,8 @@ uint32_t lpme_scan(lpme_config_t *const config, matrix_row_t *rows,
     i2c_uninit();
 
     // charge to LPME
-    setPinOutput(CONFIG_PIN_SCL);
-    writePinHigh(CONFIG_PIN_SCL);
+    gpio_set_pin_output_push_pull(CONFIG_PIN_SCL);
+    gpio_write_pin_high(CONFIG_PIN_SCL);
 
     return change;
 }

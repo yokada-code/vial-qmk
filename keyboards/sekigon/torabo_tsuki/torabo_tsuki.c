@@ -98,36 +98,36 @@ void keyboard_post_init_kb(void) {
 }
 
 void matrix_init_kb() {
-    setPinInputHigh(CONFIG_HALF_DUPLEX_PIN);
-    setPinInputHigh(TB_MOTION);
+    gpio_set_pin_input_high(CONFIG_HALF_DUPLEX_PIN);
+    gpio_set_pin_input_high(TB_MOTION);
 
     // turn on trackball and sr
-    writePinHigh(TB_POW);
-    writePinHigh(SR_POW);
-    setPinOutput(TB_POW);
-    setPinOutput(SR_POW);
-    writePinHigh(CS_PIN_TB0);
-    writePinLow(CONFIG_SCK_PIN);
-    setPinOutput(CS_PIN_TB0);
-    setPinOutput(CONFIG_SCK_PIN);
+    gpio_write_pin_high(TB_POW);
+    gpio_write_pin_high(SR_POW);
+    gpio_set_pin_output_push_pull(TB_POW);
+    gpio_set_pin_output_push_pull(SR_POW);
+    gpio_write_pin_high(CS_PIN_TB0);
+    gpio_write_pin_low(CONFIG_SCK_PIN);
+    gpio_set_pin_output_push_pull(CS_PIN_TB0);
+    gpio_set_pin_output_push_pull(CONFIG_SCK_PIN);
 
     // reset io expanders
-    setPinOutput(IO_RESET);
-    writePinLow(IO_RESET);
+    gpio_set_pin_output_push_pull(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
 
-    writePinHigh(SR_DATA);
-    writePinLow(SR_CLK);
-    setPinOutput(SR_DATA);
-    setPinOutput(SR_CLK);
+    gpio_write_pin_high(SR_DATA);
+    gpio_write_pin_low(SR_CLK);
+    gpio_set_pin_output_push_pull(SR_DATA);
+    gpio_set_pin_output_push_pull(SR_CLK);
 
     // deassert reset
-    writePinHigh(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 
-    writePinHigh(SR_DATA);
+    gpio_write_pin_high(SR_DATA);
     wait_us(1);
     for (int idx = 0; idx < 16; idx++) {
-        writePinHigh(SR_CLK);
-        writePinLow(SR_CLK);
+        gpio_write_pin_high(SR_CLK);
+        gpio_write_pin_low(SR_CLK);
     }
 
     matrix_init_user();
@@ -153,8 +153,8 @@ void bmp_before_sleep(void) {
     trackball_shutdown();
 
     // clear all cols
-    writePinLow(IO_RESET);
-    writePinHigh(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 }
 
 void bmp_before_shutdown(void) {

@@ -221,21 +221,21 @@ void bmp_schedule_next_task(void) {
     } else {
         if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_COL2ROW){
             for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
-                writePinLow(bmp_config->matrix.row_pins[i]);
+                gpio_write_pin_low(bmp_config->matrix.row_pins[i]);
             }
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_74HC164COL) {
-            writePinLow(bmp_config->matrix.col_pins[2]);
-            writePinHigh(bmp_config->matrix.col_pins[2]);
+            gpio_write_pin_low(bmp_config->matrix.col_pins[2]);
+            gpio_write_pin_high(bmp_config->matrix.col_pins[2]);
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_ROW2COL) {
             for (int i = 0; i < bmp_config->matrix.device_cols; i++) {
-                writePinLow(bmp_config->matrix.col_pins[i]);
+                gpio_write_pin_low(bmp_config->matrix.col_pins[i]);
             }
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_74HC164ROW) {
-            writePinLow(bmp_config->matrix.row_pins[2]);
-            writePinHigh(bmp_config->matrix.row_pins[2]);
+            gpio_write_pin_low(bmp_config->matrix.row_pins[2]);
+            gpio_write_pin_high(bmp_config->matrix.row_pins[2]);
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else {
             if (timer_elapsed32(last_key_press_time) > 200) {

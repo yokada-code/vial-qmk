@@ -61,11 +61,12 @@ const uint8_t MAINTASK_INTERVAL       = MATRIX_SCAN_TIME_MS;
 /* declarations */
 uint8_t keyboard_leds(void);
 void    send_keyboard(report_keyboard_t *report);
+void    send_nkro(report_nkro_t *report) {}
 void    send_mouse(report_mouse_t *report);
 void    send_extra(report_extra_t *report);
 
 /* host struct */
-host_driver_t driver = {keyboard_leds, send_keyboard, send_mouse, send_extra};
+host_driver_t driver = {keyboard_leds, send_keyboard, send_nkro, send_mouse, send_extra};
 const bmp_api_config_t *bmp_config;
 
 const bmp_api_config_t default_config = {.version     = CONFIG_VERSION,
@@ -146,7 +147,7 @@ int bmp_validate_config(const bmp_api_config_t *config) {
         || config->matrix.device_cols > config->matrix.cols      //
         || config->matrix.layer > 32 || config->matrix.layer < 1 //
         || config->mode >= WEBNUS_CONFIG                         //
-        || config->led.num > RGBLED_NUM                          //
+        || config->led.num > RGBLIGHT_LED_COUNT                  //
 
     ) {
         return 1;
@@ -304,6 +305,9 @@ void protocol_task(void) {
 
     protocol_post_task();
 }
+
+void raw_hid_task(void) {}
+void console_task(void) {}
 
 bool is_keyboard_master(void) {
     return BMPAPI->app.get_config()->mode != SPLIT_SLAVE;

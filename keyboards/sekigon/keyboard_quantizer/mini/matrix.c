@@ -29,8 +29,8 @@ static bool send_led_report(uint8_t* leds);
 
 void matrix_init_custom(void) {
     // Configure LED pin
-    setPinOutput(KQ_PIN_LED);
-    writePinHigh(KQ_PIN_LED);
+    gpio_set_pin_output_push_pull(KQ_PIN_LED);
+    gpio_write_pin_high(KQ_PIN_LED);
 }
 
 bool matrix_scan_custom(matrix_row_t current_matrix[]) {
@@ -77,9 +77,9 @@ void housekeeping_task_kb(void) {
     // Blink LED when USB reports are received
     if (led_count >= 0) {
         if (timer_elapsed(led_count) < LED_BLINK_TIME_MS) {
-            writePinLow(KQ_PIN_LED);
+            gpio_write_pin_low(KQ_PIN_LED);
         } else if (timer_elapsed(led_count) < 2 * LED_BLINK_TIME_MS) {
-            writePinHigh(KQ_PIN_LED);
+            gpio_write_pin_high(KQ_PIN_LED);
         } else {
             led_count = -1;
         }

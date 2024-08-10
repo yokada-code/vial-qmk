@@ -203,24 +203,24 @@ bool bmp_indicator_task(void) {
 
 static uint8_t indicator_led = 0xFF;
 void bmp_indicator_init(uint8_t led_pin) {
-    setPinOutput(led_pin);
+    gpio_set_pin_output_push_pull(led_pin);
     indicator_led = led_pin;
 }
 
 #if BMP_INDICATOR_INVERT == 0
 void bmp_indicator_led_on() {
-    writePinHigh(indicator_led);
+    gpio_write_pin_high(indicator_led);
 }
 
 void bmp_indicator_led_off() {
-    writePinLow(indicator_led);
+    gpio_write_pin_low(indicator_led);
 }
 #else
 void bmp_indicator_led_on() {
-    writePinLow(indicator_led);
+    gpio_write_pin_low(indicator_led);
 }
 
 void bmp_indicator_led_off() {
-    writePinHigh(indicator_led);
+    gpio_write_pin_high(indicator_led);
 }
 #endif

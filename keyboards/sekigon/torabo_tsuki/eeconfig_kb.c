@@ -7,17 +7,20 @@
 
 void eeconfig_init_kb_datablock(void) {
     memset(&eeconfig_kb, 0, sizeof(eeconfig_kb));
-    eeconfig_kb.version = EECONFIG_KB_VERSION;
-    eeconfig_kb.cursor.cpi_200 = (400 / 200) - 1;
-    eeconfig_kb.cursor.fine_layer = 0;
-    eeconfig_kb.cursor.fine_div = 1;
+    eeconfig_kb.version            = EECONFIG_KB_VERSION;
+    eeconfig_kb.cursor.cpi_200     = (400 / 200) - 1;
+    eeconfig_kb.cursor.fine_layer  = 0;
+    eeconfig_kb.cursor.fine_div    = 1;
     eeconfig_kb.cursor.rough_layer = 0;
-    eeconfig_kb.cursor.rough_mul = 1;
-    eeconfig_kb.cursor.rotate = 0;
-    eeconfig_kb.aml.timeout = 100;
+    eeconfig_kb.cursor.rough_mul   = 1;
+    eeconfig_kb.cursor.rotate      = 0;
+    eeconfig_kb.aml.timeout        = 100;
     eeconfig_kb.aml.options.enable = false;
-    eeconfig_kb.aml.layer = 1;
-    eeconfig_kb.scroll.divide = 1;
+    eeconfig_kb.aml.layer          = 1;
+    eeconfig_kb.aml.debounce       = 25;
+    eeconfig_kb.aml.threshold      = 10;
+    eeconfig_kb.aml.delay          = 200;
+    eeconfig_kb.scroll.divide      = 1;
     eeconfig_update_kb_datablock(&eeconfig_kb);
 }
 
@@ -45,6 +48,16 @@ static void aml_layer_init(int32_t _) {
 static void aml_timeout_init(int32_t _) {
     set_auto_mouse_timeout(eeconfig_kb.aml.timeout);
 }
+static void aml_debounce_init(int32_t _) {
+    set_auto_mouse_debounce(eeconfig_kb.aml.debounce);
+}
+uint16_t get_auto_mouse_delay(void) {
+    return eeconfig_kb.aml.delay;
+}
+uint8_t get_auto_mouse_threshold(void) {
+    return eeconfig_kb.aml.threshold;
+}
+
 void battery_type_init(int32_t _) {
     if (eeconfig_kb.battery.type == 0) {
         BMPAPI->adc.config_vcc_channel(BAT_IN, 1300, 1050);
@@ -70,6 +83,9 @@ static const eeconfig_kb_member_t eeconfig_kb_members[] = {
     [GET_ID(aml.options)]        = {GET_ID(aml.options), .size = 1, .initialize = aml_option_init},    //
     [GET_ID(aml.layer)]          = {GET_ID(aml.layer), .size = 1, .initialize = aml_layer_init},       //
     [GET_ID(aml.timeout)]        = {GET_ID(aml.timeout), .size = 2, .initialize = aml_timeout_init},   //
+    [GET_ID(aml.debounce)]       = {GET_ID(aml.debounce), .size = 1, .initialize = aml_debounce_init},    //
+    [GET_ID(aml.threshold)]      = {GET_ID(aml.threshold), .size = 1},                                 //
+    [GET_ID(aml.delay)]          = {GET_ID(aml.delay), .size = 2},                                     //
     [GET_ID(scroll.layer)]       = {GET_ID(scroll.layer), .size = 1},                                  //
     [GET_ID(scroll.options)]     = {GET_ID(scroll.options), .size = 1},                                //
     [GET_ID(scroll.divide)]      = {GET_ID(scroll.divide), .size = 1},                                 //
@@ -81,6 +97,11 @@ static void process_custom_value_command(uint8_t *data, uint8_t length) {
     uint8_t *command_id        = &(data[0]);
     // uint8_t *channel_id        = &(data[1]);
     uint8_t *value_id_and_data = &(data[2]);
+
+    if (*command_id == id_eeprom_reset) {
+        eeconfig_init_kb_datablock();
+        return;
+    }
 
     if (value_id_and_data[0] >= sizeof(eeconfig_kb_members) / sizeof(eeconfig_kb_members[0])) {
         return;

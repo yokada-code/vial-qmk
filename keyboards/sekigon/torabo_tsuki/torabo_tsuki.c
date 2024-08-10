@@ -138,7 +138,9 @@ void                 matrix_scan_kb(void) {
     // assign TB_MOTION to matrix
     // This enable PERMISSIVE_HOLD with trackball move
     matrix[0] &= ~(1 << (MATRIX_COLS_DEFAULT - 1));
-    matrix[0] |= ((readPin(TB_MOTION) ? 0 : 1) << (MATRIX_COLS_DEFAULT - 1));
+    if (is_auto_mouse_active()) {
+        matrix[0] |= ((readPin(TB_MOTION) ? 0 : 1) << (MATRIX_COLS_DEFAULT - 1));
+    }
     matrix_scan_user();
 }
 

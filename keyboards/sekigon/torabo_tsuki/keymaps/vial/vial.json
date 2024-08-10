@@ -1095,6 +1095,45 @@
                     0,
                     10
                   ]
+                },
+                {
+                  "label": "AML Debounce",
+                  "type": "range",
+                  "options": [
+                    10,
+                    100
+                  ],
+                  "content": [
+                    "id_trackball_aml_debounce",
+                    0,
+                    12
+                  ]
+                },
+                {
+                  "label": "AML Threshold",
+                  "type": "range",
+                  "options": [
+                    0,
+                    255
+                  ],
+                  "content": [
+                    "id_trackball_aml_threshold",
+                    0,
+                    13
+                  ]
+                },
+                {
+                  "label": "AML Delay",
+                  "type": "range",
+                  "options": [
+                    100,
+                    1000
+                  ],
+                  "content": [
+                    "id_trackball_aml_delay",
+                    0,
+                    14
+                  ]
                 }
               ]
             }
@@ -1109,7 +1148,7 @@
               "content": [
                 "id_trackball_scroll_layer",
                 0,
-                12
+                16
               ],
               "options": [
                 "0",
@@ -1128,7 +1167,7 @@
               "content": [
                 "id_trackball_scroll_option",
                 0,
-                13
+                17
               ],
               "options": [
                 "Invert",
@@ -1141,7 +1180,7 @@
               "content": [
                 "id_trackball_scroll_divide",
                 0,
-                14
+                18
               ],
               "options": [
                 1,
@@ -1164,7 +1203,7 @@
               "content": [
                 "id_battery_type",
                 0,
-                15
+                19
               ],
               "options": [
                 "Ni-MH(1.2~1V)",
@@ -1177,7 +1216,7 @@
               "content": [
                 "id_battery_mode",
                 0,
-                16
+                20
               ],
               "options": [
                 "Standard",

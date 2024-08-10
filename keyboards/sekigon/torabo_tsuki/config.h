@@ -10,6 +10,10 @@
 
 #define EECONFIG_KB_DATA_SIZE 32
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE
+#define AUTO_MOUSE_DELAY get_auto_mouse_delay()
+#define AUTO_MOUSE_THRESHOLD get_auto_mouse_threshold()
+unsigned short get_auto_mouse_delay(void);
+unsigned char  get_auto_mouse_threshold(void);
 
 #define CONFIG_SCK_PIN 9
 #define CONFIG_SS_PIN 8

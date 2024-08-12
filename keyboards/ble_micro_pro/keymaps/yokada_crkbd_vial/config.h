@@ -7,6 +7,7 @@
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 
 #define WPM_UNFILTERED
+#define OLED_TIMEOUT 60000
 
 #ifndef __ASSEMBLER__
 #    include "microshell/core/msconf.h"

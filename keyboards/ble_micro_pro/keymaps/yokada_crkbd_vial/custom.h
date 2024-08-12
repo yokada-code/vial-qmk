@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 uint8_t get_advertise_to(void);
+extern bool is_ble_advertising;
 
 typedef struct {
     uint8_t type;

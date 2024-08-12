@@ -10,6 +10,7 @@
 #include "custom_keycodes.h"
 #include "uart_connection.h"
 
+bool is_ble_advertising = false;
 static uint8_t advertise_to_  = 0;
 uint8_t get_advertise_to() { return advertise_to_; }
 void set_advertise_to(uint8_t id) { advertise_to_ = id; }

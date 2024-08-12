@@ -131,4 +131,61 @@ void update_bt_connection_status_str(void){
     ble_con_status[5] = '\0';
 }
 
-void update_rgblight_mode_name(void) {}
+#define _RGBM_SINGLE_STATIC(sym) RGBLIGHT_MODE_##sym,
+#define _RGBM_SINGLE_DYNAMIC(sym) RGBLIGHT_MODE_##sym,
+#define _RGBM_MULTI_STATIC(sym) RGBLIGHT_MODE_##sym,
+#define _RGBM_MULTI_DYNAMIC(sym) RGBLIGHT_MODE_##sym,
+#define _RGBM_TMP_STATIC(sym, msym) RGBLIGHT_MODE_##msym,
+#define _RGBM_TMP_DYNAMIC(sym, msym) RGBLIGHT_MODE_##msym,
+static uint8_t mode_base_table[] = {
+    0,  // RGBLIGHT_MODE_zero
+#include "rgblight_modes.h"
+};
+
+uint8_t rgblight_mode_name[RGBLIGHT_MODE_NAME_LEN];
+
+void update_rgblight_mode_name(void){
+    uint8_t mode = rgblight_get_mode();
+    uint8_t base_mode = mode_base_table[mode];
+
+    if (!rgblight_is_enabled() || !is_rgblight_initialized) {
+        memcpy(rgblight_mode_name, "     ", RGBLIGHT_MODE_NAME_LEN);
+        return;
+    } else if (mode == RGBLIGHT_MODE_STATIC_LIGHT) {
+        memcpy(rgblight_mode_name, "stat ", RGBLIGHT_MODE_NAME_LEN);
+        return;
+    }
+    switch (base_mode) {
+        case RGBLIGHT_MODE_BREATHING:
+            memcpy(rgblight_mode_name, "brth ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_RAINBOW_MOOD:
+            memcpy(rgblight_mode_name, "rbwM ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_RAINBOW_SWIRL:
+            memcpy(rgblight_mode_name, "rbwS ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_SNAKE:
+            memcpy(rgblight_mode_name, "snak ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_KNIGHT:
+            memcpy(rgblight_mode_name, "kght ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_CHRISTMAS:
+            memcpy(rgblight_mode_name, "xmas ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_STATIC_GRADIENT:
+            memcpy(rgblight_mode_name, "grad ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_RGB_TEST:
+            memcpy(rgblight_mode_name, "rgbt ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_ALTERNATING:
+            memcpy(rgblight_mode_name, "altn ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+        case RGBLIGHT_MODE_TWINKLE:
+            memcpy(rgblight_mode_name, "twnk ", RGBLIGHT_MODE_NAME_LEN);
+            break;
+     }
+     rgblight_mode_name[4] = get_hex_char(mode - base_mode);
+}

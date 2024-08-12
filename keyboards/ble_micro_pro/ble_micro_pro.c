@@ -4,7 +4,7 @@
 
 #include "bmp.h"
 
-bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+__attribute__((weak)) bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     bool cont = process_record_bmp(keycode, record);
 
     if (cont) {

@@ -3,11 +3,14 @@
 #include "custom.h"
 #include "oled.h"
 #include "wpm.h"
+#include "bmp.h"
 #include "bmp_indicator_led.h"
+#include "state_controller.h"
+#include "bmp_custom_keycodes.h"
 
-uint8_t get_advertise_to(void) {
-    return 255;  //not implemented
-}
+static uint8_t advertise_to_  = 0;
+uint8_t get_advertise_to() { return advertise_to_; }
+void set_advertise_to(uint8_t id) { advertise_to_ = id; }
 
 // Dummy function always returning 0 to enable oled refresh
 int bmp_indicator_user_pattern(uint32_t time_ms, int32_t option) { return 0; }
@@ -40,4 +43,52 @@ void keyboard_post_init_user(void) {
     if (!is_keyboard_master()) {
         BMPAPI->ble.set_nus_rcv_cb(nus_rcv_callback_user);
     }
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    process_record_user_luna(keycode, record);
+    if (record->event.pressed) {
+        switch (keycode) {
+            case ADV_ID0 ... ADV_ID7:
+                set_advertise_to(keycode - ADV_ID0);
+                break;
+            case AD_WO_L:
+                set_advertise_to(255);
+                break;
+        }
+    }
+
+   return true;
+}
+
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
+    bool cont = process_record_bmp(keycode, record);
+
+    cont = process_record_user(keycode, record);
+
+    return cont;
+}
+
+void bmp_state_change_cb_user(bmp_api_event_t event) {
+    update_bt_connection_status_str();
+}
+
+void bmp_state_change_cb_kb(bmp_api_event_t event) {
+    switch (event) {
+        case BLE_CONNECTED:
+            is_ble_advertising = false;
+            break;
+        case BLE_DISCONNECTED:
+            is_ble_advertising = false;
+            break;
+        case BLE_ADVERTISING_START:
+            is_ble_advertising = true;
+            break;
+        case BLE_ADVERTISING_STOP:
+            is_ble_advertising = false;
+            break;
+        default:
+            break;
+    }
+    bmp_state_change_cb_user(event);
 }

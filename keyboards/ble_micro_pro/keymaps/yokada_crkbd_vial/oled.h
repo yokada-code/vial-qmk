@@ -43,3 +43,4 @@ extern bool enable_log_info;
 #define RGBLIGHT_MODE_NAME_LEN 6
 extern uint8_t rgblight_mode_name[RGBLIGHT_MODE_NAME_LEN];
 void update_rgblight_mode_name(void);
+extern bool is_ble_advertising;

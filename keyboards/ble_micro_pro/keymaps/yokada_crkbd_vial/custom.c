@@ -7,6 +7,8 @@
 #include "bmp_indicator_led.h"
 #include "state_controller.h"
 #include "bmp_custom_keycodes.h"
+#include "custom_keycodes.h"
+#include "uart_connection.h"
 
 static uint8_t advertise_to_  = 0;
 uint8_t get_advertise_to() { return advertise_to_; }
@@ -54,6 +56,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 break;
             case AD_WO_L:
                 set_advertise_to(255);
+                break;
+            case UARTINI:
+                uart_start_connection();
+                break;
+            case UARTDIS:
+                uart_stop_connection();
                 break;
         }
     }

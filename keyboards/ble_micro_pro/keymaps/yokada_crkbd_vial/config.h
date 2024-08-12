@@ -7,3 +7,10 @@
 #define VIAL_UNLOCK_COMBO_COLS { 0, 1 }
 
 #define WPM_UNFILTERED
+
+#ifndef __ASSEMBLER__
+#    include "microshell/core/msconf.h"
+#    include "microshell/util/mscmd.h"
+#    define USER_DEFINED_MSCMD  {"uart", usrcmd_uart, "UART connection"},
+MSCMD_USER_RESULT usrcmd_uart(MSOPT *msopt, MSCMD_USER_OBJECT usrobj);
+#endif

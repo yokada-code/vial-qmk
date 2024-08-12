@@ -7,4 +7,4 @@ OLED_DRIVER = ssd1306
 
 WPM_ENABLE = yes
 
-SRC += custom.c oled_bongo.c oled_luna.c oled.c
+SRC += custom.c oled_bongo.c oled_luna.c oled.c matrix_uart.c uart_connection.c

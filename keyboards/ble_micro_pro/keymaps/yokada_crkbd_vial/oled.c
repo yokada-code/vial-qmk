@@ -5,6 +5,7 @@
 #include "bmp.h"
 #include "apidef.h"
 #include "bmp_host_driver.h"
+#include "uart_connection.h"
 
 uint8_t display_flags = 0;
 bool is_ble_advertising = false;
@@ -89,7 +90,11 @@ void update_bt_connection_status_str(void){
          bonding_map |= 1 << peers[i].id;
     }
 
-    ble_con_status[0] = ' ';
+    if (is_uart_established()) {
+        ble_con_status[0] = '\7';  // Nakaguro(U+30FB)
+    } else {
+        ble_con_status[0] = ' ';
+    }
     if (is_keyboard_master()) {
         if (get_ble_enabled()){
             uint8_t *hostname_full = NULL;

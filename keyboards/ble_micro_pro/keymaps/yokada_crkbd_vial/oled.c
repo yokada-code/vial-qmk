@@ -12,6 +12,24 @@ uint8_t ble_con_hostname[CON_HOSTNAME_LEN];
 
 uint8_t rgblight_mode_name[RGBLIGHT_MODE_NAME_LEN];
 
+static uint32_t send_wpm_timer = 0;
+void send_wpm(void) {
+    static uint8_t last_wpm = 0;
+    uint8_t current_wpm = get_current_wpm();
+    if (timer_elapsed32(send_wpm_timer) > 500) {
+        if (last_wpm != current_wpm) {
+            bmp_user_data_4byte dat = {
+                .type = BMP_USER_DATA_WPM,
+                .data = current_wpm,
+            };
+            BMPAPI->ble.nus_send_bytes((uint8_t*)&dat, sizeof(dat));
+            dprintf("send_wpm: sent data: length: %u, dat[0]: %u\n", sizeof(dat), ((uint8_t*)&dat)[0]);
+        }
+        last_wpm = current_wpm;
+        send_wpm_timer = timer_read32();
+    }
+}
+
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     if (is_keyboard_master()) {
         return OLED_ROTATION_270;
@@ -22,6 +40,7 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 
 bool oled_task_user(void) {
     if (is_keyboard_master()) {
+        send_wpm();
         print_status_luna();
     } else {
         print_status_bongo();

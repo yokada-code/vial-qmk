@@ -159,13 +159,14 @@ void bmp_raw_hid_receive_common(const uint8_t *data, uint8_t len) {
         return;
     }
 
-    memcpy(via_data, data, len - 1);
+    memset(via_data, 0, sizeof(via_data));
+    memcpy(via_data, data, sizeof(via_data));
 
-    if (pre_raw_hid_receive(via_data, len - 1)) {
+    if (pre_raw_hid_receive(via_data, sizeof(via_data))) {
         if (is_vial_enabled) {
-            raw_hid_receive(via_data, len - 1);
+            raw_hid_receive(via_data, sizeof(via_data));
         } else {
-            raw_hid_receive_qmk(via_data, len - 1);
+            raw_hid_receive_qmk(via_data, sizeof(via_data));
         }
     }
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "action.h"
+#include "action_util.h"
 #include "bmp.h"
 #include "send_string.h"
 #include "print.h"
@@ -17,6 +18,15 @@
 #define DEFFERED_KEY_RECORD_LEN 6
 static keyrecord_t deferred_key_record[DEFFERED_KEY_RECORD_LEN];
 
+uint8_t  encoder_modifier            = 0;
+uint16_t encoder_modifier_pressed_ms = 0;
+bool     is_encoder_action           = false;
+int      reset_flag                  = 0;
+
+#ifndef ENCODER_MODIFIER_TIMEOUT_MS
+#    define ENCODER_MODIFIER_TIMEOUT_MS 500
+#endif
+
 static void push_deferred_key_record(uint16_t keycode, keyevent_t *event) {
     for (int i = 0; i < DEFFERED_KEY_RECORD_LEN; i++) {
         if (deferred_key_record[i].keycode == KC_NO) {
@@ -27,7 +37,29 @@ static void push_deferred_key_record(uint16_t keycode, keyevent_t *event) {
     }
 }
 
-bool process_record_bmp(uint16_t keycode, keyrecord_t* record) {
+bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
+    bool is_encoder_action = record->event.type == ENCODER_CCW_EVENT || record->event.type == ENCODER_CW_EVENT;
+    if (encoder_modifier != 0 && !is_encoder_action) {
+        unregister_mods(encoder_modifier);
+        encoder_modifier = 0;
+    }
+
+    if (is_encoder_action && (keycode >= QK_MODS && keycode <= QK_MODS_MAX)) {
+        if (record->event.pressed) {
+            uint8_t current_mods        = keycode >> 8;
+            encoder_modifier_pressed_ms = timer_read();
+            if (current_mods != encoder_modifier) {
+                del_mods(encoder_modifier);
+                encoder_modifier = current_mods;
+                add_mods(encoder_modifier);
+            }
+            register_code(keycode & 0xff);
+        } else {
+            unregister_code(keycode & 0xff);
+        }
+        return false;
+    }
+
     // To apply key overrides to keycodes combined shift modifier, separate to two actions
     if (keycode >= QK_MODS && keycode <= QK_MODS_MAX) {
         if (record->event.pressed) {
@@ -112,5 +144,12 @@ void bmp_post_keyboard_task(void) {
         } else {
             return;
         }
+    }
+}
+
+void protocol_post_task_bmp(void) {
+    if (encoder_modifier != 0 && timer_elapsed(encoder_modifier_pressed_ms) > ENCODER_MODIFIER_TIMEOUT_MS) {
+        unregister_mods(encoder_modifier);
+        encoder_modifier = 0;
     }
 }

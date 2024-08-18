@@ -288,6 +288,8 @@ void protocol_post_task(void) {
     }
 #endif
 
+    protocol_post_task_bmp();
+
     BMPAPI->usb.process();
     cli_exec();
     bmp_mode_transition_check();

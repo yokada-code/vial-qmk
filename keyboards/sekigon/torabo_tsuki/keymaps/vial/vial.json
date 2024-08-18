@@ -218,6 +218,15 @@
       ],
       [
         {
+          "y": 1
+        },
+        "0,0\n\n\n0,0\n\n\n\n\n\ne",
+        "1,0\n\n\n0,0\n\n\n\n\n\ne",
+        "1,1\n\n\n0,0\n\n\n\n\n\ne",
+        "0,1\n\n\n0,0\n\n\n\n\n\ne"
+      ],
+      [
+        {
           "r": 10,
           "rx": 4.2,
           "ry": 4.5,
@@ -460,6 +469,15 @@
         },
         "9,1\n\n\n0,1",
         "9,0\n\n\n0,1"
+      ],
+      [
+        {
+          "y": 1
+        },
+        "0,0\n\n\n0,1\n\n\n\n\n\ne",
+        "1,0\n\n\n0,1\n\n\n\n\n\ne",
+        "1,1\n\n\n0,1\n\n\n\n\n\ne",
+        "0,1\n\n\n0,1\n\n\n\n\n\ne"
       ],
       [
         {
@@ -763,6 +781,15 @@
       ],
       [
         {
+          "y": 1
+        },
+        "0,0\n\n\n0,2\n\n\n\n\n\ne",
+        "1,0\n\n\n0,2\n\n\n\n\n\ne",
+        "1,1\n\n\n0,2\n\n\n\n\n\ne",
+        "0,1\n\n\n0,2\n\n\n\n\n\ne"
+      ],
+      [
+        {
           "r": 10,
           "rx": 5.2,
           "ry": 5.5,
@@ -931,6 +958,11 @@
       "name": "ENABLE_DRAG_SCROLL_ON_HOLD",
       "title": "Enable drag scroll on hold",
       "shortName": "DRAG\nSCROLL"
+    },
+    {
+      "name": "TRACKBALL_AS_ENCODER_ON_HOLD",
+      "title": "Map trackball move to encoder",
+      "shortName": "TB AS\nENCODER"
     }
   ],
   "menus": [
@@ -1172,6 +1204,56 @@
                 "id_trackball_scroll_divide",
                 0,
                 18
+              ],
+              "options": [
+                1,
+                255
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Encoder",
+          "content": [
+            {
+              "label": "Layer",
+              "type": "multiple-checkbox",
+              "content": [
+                "id_encoder_scroll_layer",
+                0,
+                21
+              ],
+              "options": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7"
+              ]
+            },
+            {
+              "label": "Options",
+              "type": "multiple-checkbox",
+              "content": [
+                "id_encoder_scroll_option",
+                0,
+                22
+              ],
+              "options": [
+                "Invert",
+                "Snap"
+              ]
+            },
+            {
+              "label": "Divide",
+              "type": "range",
+              "content": [
+                "id_encoder_scroll_divide",
+                0,
+                23
               ],
               "options": [
                 1,

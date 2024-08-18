@@ -33,6 +33,18 @@
             15
         ]
     },
+    "encoder": {
+        "rotary": [
+            {
+                "pin_a": "NO_PIN",
+                "pin_b": "NO_PIN"
+            },
+            {
+                "pin_a": "NO_PIN",
+                "pin_b": "NO_PIN"
+            }
+        ]
+    },
     "matrix_size": {
         "rows": 10,
         "cols": 7

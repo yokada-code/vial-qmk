@@ -36,9 +36,6 @@ unsigned char  get_auto_mouse_threshold(void);
 #define BMP_VIAL_MODE_DEFAULT true
 #define BMP_DEBOUNCE 2
 
-#define ENCODERS_PAD_A {}
-#define ENCODERS_PAD_B {}
-
 #define CONFIG_RESERVED {0, 2, 0, 0, 0, 0, 0, 0}
 
 #    include "microshell/util/mscmd.h"

@@ -7,20 +7,21 @@
 
 void eeconfig_init_kb_datablock(void) {
     memset(&eeconfig_kb, 0, sizeof(eeconfig_kb));
-    eeconfig_kb.version            = EECONFIG_KB_VERSION;
-    eeconfig_kb.cursor.cpi_200     = (400 / 200) - 1;
-    eeconfig_kb.cursor.fine_layer  = 0;
-    eeconfig_kb.cursor.fine_div    = 1;
-    eeconfig_kb.cursor.rough_layer = 0;
-    eeconfig_kb.cursor.rough_mul   = 1;
-    eeconfig_kb.cursor.rotate      = 0;
-    eeconfig_kb.aml.timeout        = 100;
-    eeconfig_kb.aml.options.enable = false;
-    eeconfig_kb.aml.layer          = 1;
-    eeconfig_kb.aml.debounce       = 25;
-    eeconfig_kb.aml.threshold      = 10;
-    eeconfig_kb.aml.delay          = 200;
-    eeconfig_kb.scroll.divide      = 1;
+    eeconfig_kb.version               = EECONFIG_KB_VERSION;
+    eeconfig_kb.cursor.cpi_200        = (400 / 200) - 1;
+    eeconfig_kb.cursor.fine_layer     = 0;
+    eeconfig_kb.cursor.fine_div       = 1;
+    eeconfig_kb.cursor.rough_layer    = 0;
+    eeconfig_kb.cursor.rough_mul      = 1;
+    eeconfig_kb.cursor.rotate         = 0;
+    eeconfig_kb.aml.timeout           = 100;
+    eeconfig_kb.aml.options.enable    = false;
+    eeconfig_kb.aml.layer             = 1;
+    eeconfig_kb.aml.debounce          = 25;
+    eeconfig_kb.aml.threshold         = 10;
+    eeconfig_kb.aml.delay             = 200;
+    eeconfig_kb.scroll.divide         = 1;
+    eeconfig_kb.pseudo_encoder.divide = 50;
     eeconfig_update_kb_datablock(&eeconfig_kb);
 }
 
@@ -70,27 +71,30 @@ void battery_mode_init(int32_t _) {
     new_config.param_central    = get_central_conn_param(eeconfig_kb.battery.mode);
     new_config.param_peripheral = get_periph_conn_param(eeconfig_kb.battery.mode);
     BMPAPI->app.set_config(&new_config);
-    BMPAPI->ble.advertise(BMPAPI->ble.get_connection_status() & 0xff);
+    // BMPAPI->ble.advertise(BMPAPI->ble.get_connection_status() & 0xff);
 }
 
 static const eeconfig_kb_member_t eeconfig_kb_members[] = {
-    [GET_ID(cursor.cpi_200)]     = {GET_ID(cursor.cpi_200), .size = 1, .initialize = cpi_200_init},    //
-    [GET_ID(cursor.fine_layer)]  = {GET_ID(cursor.fine_layer), .size = 1},                             //
-    [GET_ID(cursor.fine_div)]    = {GET_ID(cursor.fine_div), .size = 1},                               //
-    [GET_ID(cursor.rough_layer)] = {GET_ID(cursor.rough_layer), .size = 1},                            //
-    [GET_ID(cursor.rough_mul)]   = {GET_ID(cursor.rough_mul), .size = 1},                              //
-    [GET_ID(cursor.rotate)]      = {GET_ID(cursor.rotate), .size = 1},                                 //
-    [GET_ID(aml.options)]        = {GET_ID(aml.options), .size = 1, .initialize = aml_option_init},    //
-    [GET_ID(aml.layer)]          = {GET_ID(aml.layer), .size = 1, .initialize = aml_layer_init},       //
-    [GET_ID(aml.timeout)]        = {GET_ID(aml.timeout), .size = 2, .initialize = aml_timeout_init},   //
-    [GET_ID(aml.debounce)]       = {GET_ID(aml.debounce), .size = 1, .initialize = aml_debounce_init},    //
-    [GET_ID(aml.threshold)]      = {GET_ID(aml.threshold), .size = 1},                                 //
-    [GET_ID(aml.delay)]          = {GET_ID(aml.delay), .size = 2},                                     //
-    [GET_ID(scroll.layer)]       = {GET_ID(scroll.layer), .size = 1},                                  //
-    [GET_ID(scroll.options)]     = {GET_ID(scroll.options), .size = 1},                                //
-    [GET_ID(scroll.divide)]      = {GET_ID(scroll.divide), .size = 1},                                 //
-    [GET_ID(battery.type)]       = {GET_ID(battery.type), .size = 1, .initialize = battery_type_init}, //
-    [GET_ID(battery.mode)]       = {GET_ID(battery.mode), .size = 1, .initialize = battery_mode_init}, //
+    [GET_ID(cursor.cpi_200)]         = {GET_ID(cursor.cpi_200), .size = 1, .initialize = cpi_200_init},    //
+    [GET_ID(cursor.fine_layer)]      = {GET_ID(cursor.fine_layer), .size = 1},                             //
+    [GET_ID(cursor.fine_div)]        = {GET_ID(cursor.fine_div), .size = 1},                               //
+    [GET_ID(cursor.rough_layer)]     = {GET_ID(cursor.rough_layer), .size = 1},                            //
+    [GET_ID(cursor.rough_mul)]       = {GET_ID(cursor.rough_mul), .size = 1},                              //
+    [GET_ID(cursor.rotate)]          = {GET_ID(cursor.rotate), .size = 1},                                 //
+    [GET_ID(aml.options)]            = {GET_ID(aml.options), .size = 1, .initialize = aml_option_init},    //
+    [GET_ID(aml.layer)]              = {GET_ID(aml.layer), .size = 1, .initialize = aml_layer_init},       //
+    [GET_ID(aml.timeout)]            = {GET_ID(aml.timeout), .size = 2, .initialize = aml_timeout_init},   //
+    [GET_ID(aml.debounce)]           = {GET_ID(aml.debounce), .size = 1, .initialize = aml_debounce_init}, //
+    [GET_ID(aml.threshold)]          = {GET_ID(aml.threshold), .size = 1},                                 //
+    [GET_ID(aml.delay)]              = {GET_ID(aml.delay), .size = 2},                                     //
+    [GET_ID(scroll.layer)]           = {GET_ID(scroll.layer), .size = 1},                                  //
+    [GET_ID(scroll.options)]         = {GET_ID(scroll.options), .size = 1},                                //
+    [GET_ID(scroll.divide)]          = {GET_ID(scroll.divide), .size = 1},                                 //
+    [GET_ID(battery.type)]           = {GET_ID(battery.type), .size = 1, .initialize = battery_type_init}, //
+    [GET_ID(battery.mode)]           = {GET_ID(battery.mode), .size = 1, .initialize = battery_mode_init}, //
+    [GET_ID(pseudo_encoder.layer)]   = {GET_ID(pseudo_encoder.layer), .size = 1},                          //
+    [GET_ID(pseudo_encoder.options)] = {GET_ID(pseudo_encoder.options), .size = 1},                        //
+    [GET_ID(pseudo_encoder.divide)]  = {GET_ID(pseudo_encoder.divide), .size = 1},                         //
 };
 
 static void process_custom_value_command(uint8_t *data, uint8_t length) {

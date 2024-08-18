@@ -13,3 +13,6 @@ MOUSE_SHARED_EP = no
 MOUSEKEY_ENABLE = yes       # Mouse keys
 EXTRAKEY_ENABLE = yes       # Audio control and System control
 CONSOLE_ENABLE = yes        # Console for debug
+
+ENCODER_ENABLE = yes
+ENCODER_MAP_ENABLE = yes

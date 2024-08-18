@@ -8,9 +8,11 @@
 #include "quantum.h"
 
 uint8_t set_scrolling = 0;
+uint8_t set_encoder = 0;
 
 enum {
     DRAG_SCROLL = BMP_SAFE_RANGE,
+    TRACKBALL_AS_ENCODER
 };
 
 // Disable BMP dynamic matrix size
@@ -44,6 +46,13 @@ const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_F11, KC_F12, SEL_USB, SEL_BLE, AD_WO_L, KC_QUOT, KC_DQT, KC_GRV, KC_TILD, KC_PIPE,
         _______, _______, _______, KC_DEL, KC_TAB, BATT_LV, _______, _______, _______, _______, _______, _______
     ),
+};
+
+const uint16_t encoder_map[4][NUM_ENCODERS][NUM_DIRECTIONS] = {
+    [0] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [1] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [2] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [3] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
 };
 
 bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record) {
@@ -103,6 +112,10 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         divide *= eeconfig_kb.scroll.divide;
     }
 
+    if (set_encoder > 0 && eeconfig_kb.pseudo_encoder.divide > 0) {
+        divide *= eeconfig_kb.pseudo_encoder.divide;
+    }
+
     if ((eeconfig_kb.cursor.fine_layer & highest_layer_bits) && eeconfig_kb.cursor.fine_div > 0) {
         divide *= eeconfig_kb.cursor.fine_div;
     }
@@ -124,14 +137,21 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     set_scrolling &= ~(1 << 1);
     set_scrolling |= (eeconfig_kb.scroll.layer & highest_layer_bits) ? 2 : 0;
+    set_encoder &= ~(1 << 1);
+    set_encoder |= (eeconfig_kb.pseudo_encoder.layer & highest_layer_bits) ? 2 : 0;
 
-    if (set_scrolling > 0) {
+    if (set_scrolling > 0 || set_encoder > 0) {
+        bool snap_option = ((set_scrolling > 0) && (eeconfig_kb.scroll.options.snap)) //
+                           || ((set_encoder > 0) && (eeconfig_kb.pseudo_encoder.options.snap));
+        bool invert_option = ((set_scrolling > 0) && (eeconfig_kb.scroll.options.invert)) //
+                             || ((set_encoder > 0) && (eeconfig_kb.pseudo_encoder.options.invert));
+
         if (mouse_report.x == 0 && mouse_report.y == 0) {
             mouse_report.h = 0;
             mouse_report.v = 0;
             return mouse_report;
         }
-        else if (eeconfig_kb.scroll.options.snap) {
+        else if (snap_option) {
             if (!snap_start || timer_elapsed32(last_scroll_time) > SNAP_TIME_OUT) {
                 snap_start   = true;
                 snap_buf_cnt = 0;
@@ -161,13 +181,30 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
             mouse_report.v = (mouse_report.y > 127) ? -127 : ((mouse_report.y < -127) ? 127 : -mouse_report.y);
         }
 
-        if (eeconfig_kb.scroll.options.invert) {
+        if (invert_option) {
             mouse_report.h *= -1;
             mouse_report.v *= -1;
         }
 
         mouse_report.x = 0;
         mouse_report.y = 0;
+
+        if (set_encoder > 0) {
+            if (mouse_report.h != 0) {
+                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(0, true) : MAKE_ENCODER_CCW_EVENT(0, true));
+                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(0, false) : MAKE_ENCODER_CCW_EVENT(0, false));
+            }
+            if (mouse_report.v != 0) {
+                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(1, true) : MAKE_ENCODER_CCW_EVENT(1, true));
+                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(1, false) : MAKE_ENCODER_CCW_EVENT(1, false));
+            }
+        }
+
+        if (set_scrolling == 0) {
+            mouse_report.h = 0;
+            mouse_report.v = 0;
+        }
+
     } else {
         snap_start = false;
     }
@@ -179,6 +216,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (keycode == DRAG_SCROLL) {
         set_scrolling &= ~(1 << 0);
         set_scrolling |= record->event.pressed ? 1 : 0;
+    } else if (keycode == TRACKBALL_AS_ENCODER) {
+        set_encoder &= ~(1 << 0);
+        set_encoder |= record->event.pressed ? 1 : 0;
     }
 
     return true;

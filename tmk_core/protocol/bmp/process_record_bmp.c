@@ -18,10 +18,8 @@
 #define DEFFERED_KEY_RECORD_LEN 6
 static keyrecord_t deferred_key_record[DEFFERED_KEY_RECORD_LEN];
 
-uint8_t  encoder_modifier            = 0;
-uint16_t encoder_modifier_pressed_ms = 0;
-bool     is_encoder_action           = false;
-int      reset_flag                  = 0;
+static uint8_t  encoder_modifier            = 0;
+static uint16_t encoder_modifier_pressed_ms = 0;
 
 #ifndef ENCODER_MODIFIER_TIMEOUT_MS
 #    define ENCODER_MODIFIER_TIMEOUT_MS 500

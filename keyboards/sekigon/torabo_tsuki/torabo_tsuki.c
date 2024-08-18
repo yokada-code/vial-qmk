@@ -176,14 +176,15 @@ bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
     bmp_api_ble_conn_param_t conn_master = get_periph_conn_param(0);
     bmp_api_ble_conn_param_t conn_slave  = get_central_conn_param(0);
 
-    new_config.mode                           = config_on_storage->mode;
-    new_config.startup                        = config_on_storage->startup;
-    new_config.matrix.debounce                = MAX(BMP_DEBOUNCE, config_on_storage->matrix.debounce);
-    new_config.matrix.is_left_hand            = config_on_storage->matrix.is_left_hand;
-    new_config.param_peripheral               = config_on_storage->mode == SPLIT_SLAVE ? conn_slave : conn_master;
-    new_config.param_central                  = conn_slave;
-    new_config.reserved[2]                    = config_on_storage->reserved[2];
-    *keyboard_config                          = new_config;
+    new_config.mode                = config_on_storage->mode;
+    new_config.startup             = config_on_storage->startup;
+    new_config.matrix.debounce     = MAX(BMP_DEBOUNCE, config_on_storage->matrix.debounce);
+    new_config.matrix.is_left_hand = config_on_storage->matrix.is_left_hand;
+    new_config.param_peripheral    = config_on_storage->mode == SPLIT_SLAVE ? conn_slave : conn_master;
+    new_config.param_central       = conn_slave;
+    new_config.reserved[2]         = config_on_storage->reserved[2];
+    memset(&new_config.encoder, 0, sizeof(new_config.encoder));
+    *keyboard_config = new_config;
     return true;
 }
 

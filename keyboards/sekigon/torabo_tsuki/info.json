@@ -42,6 +42,14 @@
             {
                 "pin_a": "NO_PIN",
                 "pin_b": "NO_PIN"
+            },
+            {
+                "pin_a": "NO_PIN",
+                "pin_b": "NO_PIN"
+            },
+            {
+                "pin_a": "NO_PIN",
+                "pin_b": "NO_PIN"
             }
         ]
     },

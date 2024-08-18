@@ -12,7 +12,8 @@ uint8_t set_encoder = 0;
 
 enum {
     DRAG_SCROLL = BMP_SAFE_RANGE,
-    TRACKBALL_AS_ENCODER
+    TRACKBALL_AS_ENCODER1,
+    TRACKBALL_AS_ENCODER2,
 };
 
 // Disable BMP dynamic matrix size
@@ -49,10 +50,10 @@ const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 const uint16_t encoder_map[4][NUM_ENCODERS][NUM_DIRECTIONS] = {
-    [0] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
-    [1] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
-    [2] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
-    [3] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [0] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [1] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [2] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
+    [3] = { {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, {KC_RIGHT, KC_LEFT}, {KC_UP, KC_DOWN}, },
 };
 
 bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record) {
@@ -60,7 +61,8 @@ bool is_mouse_record_user(uint16_t keycode, keyrecord_t* record) {
         case KC_NO:
         case KC_LEFT_CTRL...KC_RIGHT_GUI:
         case DRAG_SCROLL:
-            return true;  
+        case TRACKBALL_AS_ENCODER1 ... TRACKBALL_AS_ENCODER2:
+            return true;
         default:
             return false;
     }
@@ -106,13 +108,15 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     }
 
     uint32_t highest_layer_bits = (1 << get_highest_layer(layer_state));
+    uint8_t  set_encoder_layer  = (eeconfig_kb.pseudo_encoder.layer & highest_layer_bits) ? (1 << 0) : 0;
+    uint8_t  set_encoder_flag   = set_encoder_layer | set_encoder;
 
     float divide = 1;
     if (set_scrolling > 0 && eeconfig_kb.scroll.divide > 0) {
         divide *= eeconfig_kb.scroll.divide;
     }
 
-    if (set_encoder > 0 && eeconfig_kb.pseudo_encoder.divide > 0) {
+    if (set_encoder_flag > 0 && eeconfig_kb.pseudo_encoder.divide > 0) {
         divide *= eeconfig_kb.pseudo_encoder.divide;
     }
 
@@ -137,14 +141,12 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 
     set_scrolling &= ~(1 << 1);
     set_scrolling |= (eeconfig_kb.scroll.layer & highest_layer_bits) ? 2 : 0;
-    set_encoder &= ~(1 << 1);
-    set_encoder |= (eeconfig_kb.pseudo_encoder.layer & highest_layer_bits) ? 2 : 0;
 
-    if (set_scrolling > 0 || set_encoder > 0) {
+    if (set_scrolling > 0 || set_encoder_flag > 0) {
         bool snap_option = ((set_scrolling > 0) && (eeconfig_kb.scroll.options.snap)) //
-                           || ((set_encoder > 0) && (eeconfig_kb.pseudo_encoder.options.snap));
-        bool invert_option = ((set_scrolling > 0) && (eeconfig_kb.scroll.options.invert)) //
-                             || ((set_encoder > 0) && (eeconfig_kb.pseudo_encoder.options.invert));
+                           || ((set_encoder_flag > 0)                                 //
+                               && ((eeconfig_kb.pseudo_encoder.snap_layer & highest_layer_bits) != 0));
+        bool invert_option = ((set_scrolling > 0) && (eeconfig_kb.scroll.options.invert)); //
 
         if (mouse_report.x == 0 && mouse_report.y == 0) {
             mouse_report.h = 0;
@@ -189,14 +191,18 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         mouse_report.x = 0;
         mouse_report.y = 0;
 
-        if (set_encoder > 0) {
+        if (set_encoder_flag > 0) {
             if (mouse_report.h != 0) {
-                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(0, true) : MAKE_ENCODER_CCW_EVENT(0, true));
-                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(0, false) : MAKE_ENCODER_CCW_EVENT(0, false));
+                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(biton(set_encoder_flag) * 2 + 0, true) //
+                                               : MAKE_ENCODER_CCW_EVENT(biton(set_encoder_flag) * 2 + 0, true));
+                action_exec(mouse_report.h > 0 ? MAKE_ENCODER_CW_EVENT(biton(set_encoder_flag) * 2 + 0, false) //
+                                               : MAKE_ENCODER_CCW_EVENT(biton(set_encoder_flag) * 2 + 0, false));
             }
             if (mouse_report.v != 0) {
-                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(1, true) : MAKE_ENCODER_CCW_EVENT(1, true));
-                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(1, false) : MAKE_ENCODER_CCW_EVENT(1, false));
+                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(biton(set_encoder_flag) * 2 + 1, true) //
+                                               : MAKE_ENCODER_CCW_EVENT(biton(set_encoder_flag) * 2 + 1, true));
+                action_exec(mouse_report.v > 0 ? MAKE_ENCODER_CW_EVENT(biton(set_encoder_flag) * 2 + 1, false) //
+                                               : MAKE_ENCODER_CCW_EVENT(biton(set_encoder_flag) * 2 + 1, false));
             }
         }
 
@@ -213,12 +219,16 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (keycode == DRAG_SCROLL) {
-        set_scrolling &= ~(1 << 0);
-        set_scrolling |= record->event.pressed ? 1 : 0;
-    } else if (keycode == TRACKBALL_AS_ENCODER) {
-        set_encoder &= ~(1 << 0);
-        set_encoder |= record->event.pressed ? 1 : 0;
+    switch (keycode) {
+        case DRAG_SCROLL:
+            set_scrolling &= ~(1 << 0);
+            set_scrolling |= record->event.pressed ? 1 : 0;
+            break;
+
+        case TRACKBALL_AS_ENCODER1 ... TRACKBALL_AS_ENCODER2:
+            set_encoder &= ~(1 << (keycode - TRACKBALL_AS_ENCODER1));
+            set_encoder |= record->event.pressed ? (1 << (keycode - TRACKBALL_AS_ENCODER1)) : 0;
+            break;
     }
 
     return true;

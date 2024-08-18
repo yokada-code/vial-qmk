@@ -3,7 +3,7 @@
 
 #include "quantum.h"
 
-#define EECONFIG_KB_VERSION 2
+#define EECONFIG_KB_VERSION 3
 
 typedef union
 {
@@ -46,10 +46,7 @@ typedef union
         // 21-
         struct {
             uint8_t layer;
-            struct {
-                uint8_t invert : 1;
-                uint8_t snap : 1;
-            } options;
+            uint8_t snap_layer;
             uint8_t divide;
         } pseudo_encoder;
     };

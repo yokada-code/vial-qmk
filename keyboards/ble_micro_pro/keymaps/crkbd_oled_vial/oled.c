@@ -46,21 +46,19 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 }
 
 static uint32_t periodic_task_oled_master_timer = 0;
-void periodic_task_oled_master(void) {
+void periodic_task_oled(void) {
     if (timer_elapsed32(periodic_task_oled_master_timer) > 100) {
-        static uint16_t old_stat = 0;
-        uint16_t stat = BMPAPI->ble.get_connection_status();
-        if (old_stat != stat){
-            update_bt_connection_status_str();
+        update_bt_connection_status_str();
+        if (is_keyboard_master()) {
+            send_wpm();
         }
-        send_wpm();
         periodic_task_oled_master_timer = timer_read32();
     }
 }
 
 bool oled_task_user(void) {
+    periodic_task_oled();
     if (is_keyboard_master()) {
-        periodic_task_oled_master();
         print_status_luna();
     } else {
         print_status_bongo();

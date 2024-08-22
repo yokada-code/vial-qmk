@@ -7,6 +7,7 @@
 #include "bmp_host_driver.h"
 #include "uart_connection.h"
 
+uint8_t display_flags = 0;
 uint8_t ble_con_status[CON_STATUS_STR_LEN];
 uint8_t ble_con_hostname[CON_HOSTNAME_LEN];
 

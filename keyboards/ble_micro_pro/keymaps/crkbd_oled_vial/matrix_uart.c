@@ -2,6 +2,7 @@
 #include "bmp_matrix.h"
 #include "bmp_debounce.h"
 #include "uart_connection.h"
+#include "oled.h"
 
 #include <stdbool.h>
 
@@ -50,6 +51,9 @@ uint8_t matrix_scan_impl(matrix_row_t *_matrix) {
         device_row, device_col,
         config->matrix.debounce * MAINTASK_INTERVAL, raw_changed, key_state);
 
+    if (matrix_changed > 0) {
+         display_flags |= BMP_USER_FLAG_OLED_ON;
+    }
     if (is_uart_established()) {
         for (int i = 0; i < matrix_changed; i++) {
             key_state[i].row += matrix_offset;

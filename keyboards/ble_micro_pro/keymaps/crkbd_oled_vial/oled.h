@@ -3,6 +3,7 @@
 #include "wpm.h"
 #include "custom_keycodes.h"
 
+extern uint8_t display_flags;
 bool process_record_user_luna(uint16_t keycode, keyrecord_t *record);
 void print_status_luna(void);
 void print_status_bongo(void);
@@ -19,3 +20,5 @@ extern uint8_t ble_con_hostname[];
 #define RGBLIGHT_MODE_NAME_LEN 6
 extern uint8_t rgblight_mode_name[RGBLIGHT_MODE_NAME_LEN];
 void update_rgblight_mode_name(void);
+
+#define BMP_USER_FLAG_OLED_ON  1

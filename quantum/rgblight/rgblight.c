@@ -1134,14 +1134,14 @@ void rgblight_task(void) {
             if (tick_flag) {
                 tick_flag = false;
                 if (timer_expired(now, report_last_timer)) {
-                    report_last_timer += 30000;
+                    report_last_timer = now + 30000;
                     dprintf("rgblight animation tick report to slave\n");
                     RGBLIGHT_SPLIT_ANIMATION_TICK;
                 }
             }
             oldpos16 = animation_status.pos16;
 #    endif
-            animation_status.last_timer += interval_time;
+            animation_status.last_timer = now + interval_time;
             effect_func(&animation_status);
 #    if defined(RGBLIGHT_SPLIT) && !defined(RGBLIGHT_SPLIT_NO_ANIMATION_SYNC)
             if (animation_status.pos16 == 0 && oldpos16 != 0) {

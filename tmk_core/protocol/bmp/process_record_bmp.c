@@ -8,12 +8,16 @@
 #include "send_string.h"
 #include "print.h"
 #include "vial.h"
+#include "wait.h"
+#include "qmk_settings.h"
 
 #include "apidef.h"
 #include "bmp_custom_keycodes.h"
 #include "bmp_host_driver.h"
 #include "bmp_settings.h"
 #include "state_controller.h"
+
+extern uint8_t extract_mod_bits(uint16_t code);
 
 #define DEFFERED_KEY_RECORD_LEN 6
 static keyrecord_t deferred_key_record[DEFFERED_KEY_RECORD_LEN];
@@ -61,14 +65,16 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
     // To apply key overrides to keycodes combined shift modifier, separate to two actions
     if (keycode >= QK_MODS && keycode <= QK_MODS_MAX) {
         if (record->event.pressed) {
-            register_mods(QK_MODS_GET_MODS(keycode));
             uint16_t   deferred_keycode   = QK_MODS_GET_BASIC_KEYCODE(keycode);
             keyevent_t deferred_key_event = (keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 1, .time = (timer_read() | 1)};
+            register_mods(extract_mod_bits(keycode));
+            wait_ms(QS_tap_code_delay);
             push_deferred_key_record(deferred_keycode, &deferred_key_event);
         } else {
             uint16_t   deferred_keycode   = QK_MODS_GET_BASIC_KEYCODE(keycode);
             keyevent_t deferred_key_event = ((keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 0, .time = (timer_read() | 1)});
-            unregister_mods(QK_MODS_GET_MODS(keycode));
+            unregister_mods(extract_mod_bits(keycode));
+            wait_ms(QS_tap_code_delay);
             push_deferred_key_record(deferred_keycode, &deferred_key_event);
         }
         return false;

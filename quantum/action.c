@@ -504,15 +504,18 @@ void process_action(keyrecord_t *record, action_t action) {
                                 // ad hoc: set 0 to cancel tap
                                 record->tap.count = 0;
                                 register_mods(mods);
+                                wait_ms(QS_tap_code_delay);
                             } else
 #    endif
                             {
                                 ac_dprintf("MODS_TAP: Tap: register_code\n");
                                 register_code(action.key.code);
+                                wait_ms(QS_tap_code_delay);
                             }
                         } else {
                             ac_dprintf("MODS_TAP: No tap: add_mods\n");
                             register_mods(mods);
+                            wait_ms(QS_tap_code_delay);
                         }
                     } else {
                         if (tap_count > 0) {

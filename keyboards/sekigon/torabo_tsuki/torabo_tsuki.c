@@ -47,7 +47,10 @@ bmp_api_ble_conn_param_t get_periph_conn_param(uint8_t mode) {
         {.max_interval = BLE_INTERVAL_MASTER_3, .min_interval = BLE_INTERVAL_MASTER_3, .slave_latency = MAX_INTERVAL_MASTER / BLE_INTERVAL_MASTER_3}, //
 
     };
-    return mode < MODE_COUNT ? param[mode] : param[0];
+    return mode < MODE_COUNT ? param[mode]
+                             : (bmp_api_ble_conn_param_t){MAX(eeconfig_kb.battery.custom.periph_interval, 8), //
+                                                          MAX(eeconfig_kb.battery.custom.periph_interval, 8), //
+                                                          eeconfig_kb.battery.custom.periph_sl};
 }
 
 bmp_api_ble_conn_param_t get_central_conn_param(uint8_t mode) {
@@ -58,7 +61,7 @@ bmp_api_ble_conn_param_t get_central_conn_param(uint8_t mode) {
         {.max_interval = 1 * BLE_INTERVAL_SLAVE_3, .min_interval = BLE_INTERVAL_SLAVE_3, .slave_latency = MAX_INTERVAL_SLAVE / BLE_INTERVAL_SLAVE_3}, //
 
     };
-    return mode < MODE_COUNT ? param[mode] : param[0];
+    return param[mode % MODE_COUNT];
 }
 
 static uint32_t get_interval_tb(uint8_t mode) {

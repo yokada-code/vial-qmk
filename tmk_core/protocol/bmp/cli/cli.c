@@ -234,18 +234,21 @@ static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT u
 }
 
 static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    const bmp_api_config_t *config = BMPAPI->app.get_config();
     printf("Mode: %d\n"
            "Is Left: %d\n"
            "Debounce: %d\n"
            "Auto sleep[min]: %d\n"
            "Interval(Peripheral)[ms]: %d\n"
+           "Slave letency(Peripheral): %d\n"
            "Interval(Central)[ms]: %d\n",
-           bmp_config->mode, //
-           bmp_config->matrix.is_left_hand,
-           bmp_config->matrix.debounce,               //
-           bmp_config->reserved[2] * 10,                   //
-           bmp_config->param_peripheral.min_interval, //
-           bmp_config->param_central.min_interval);
+           config->mode, //
+           config->matrix.is_left_hand,
+           config->matrix.debounce,                //
+           config->reserved[2] * 10,               //
+           config->param_peripheral.min_interval,  //
+           config->param_peripheral.slave_latency, //
+           config->param_central.min_interval);
     return 0;
 }
 

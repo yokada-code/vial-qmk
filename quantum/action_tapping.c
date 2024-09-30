@@ -7,6 +7,10 @@
 #include "keycode.h"
 #include "timer.h"
 
+#ifdef PROTOCOL_BMP
+#    include "bmp/state_controller.h"
+#endif
+
 #ifndef NO_ACTION_TAPPING
 
 #    if defined(IGNORE_MOD_TAP_INTERRUPT_PER_KEY)
@@ -179,6 +183,9 @@ bool process_tapping(keyrecord_t *keyp) {
             process_record_tap_hint(&tapping_key);
             waiting_buffer_scan_tap();
             debug_tapping_key();
+#    ifdef PROTOCOL_BMP
+            BMPAPI->app.schedule_next_task(GET_TAPPING_TERM(keyp->keycode, keyp) + 1);
+#    endif
         } else {
             // the current key is just a regular key, pass it on for regular
             // processing

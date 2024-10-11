@@ -2,6 +2,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "action_layer.h"
+#include "pointing_device.h"
 
 // BMP
 #include "state_controller.h"
@@ -252,7 +253,20 @@ void bmp_schedule_next_task(void) {
     } else if (timer_elapsed32(last_key_press_time) < MAINTASK_INTERVAL //
                || !task_interval_stretch) {
         schedule_next_task_internal(MAINTASK_INTERVAL);
-    } else {
+    }
+#if defined(POINTING_DEVICE_ENABLE) && !defined(POINTING_DEVICE_DRIVER_custom)
+    else if (is_keyboard_master()) {
+        report_mouse_t local_mouse_report = pointing_device_get_report();
+        if (local_mouse_report.x == 0 && local_mouse_report.y == 0    //
+            && local_mouse_report.h == 0 && local_mouse_report.v == 0 //
+            && local_mouse_report.buttons == 0) {
+            schedule_next_task_internal(MAINTASK_INTERVAL * 3);
+        } else {
+            schedule_next_task_internal(MAINTASK_INTERVAL);
+        }
+    }
+#endif
+    else {
         if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_COL2ROW){
             for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
                 gpio_write_pin_low(bmp_config->matrix.row_pins[i]);

@@ -43,6 +43,7 @@ static const bmp_api_gpio_mode_t bmp_gpio_out_pp = {.dir = BMP_MODE_OUTPUT, .pul
 #define gpio_set_pin_input_low(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pd)
 #define gpio_set_pin_output_push_pull(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_pp)
 #define gpio_set_pin_output_open_drain(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_od)
+#define gpio_set_pin_output(pin) gpio_set_pin_output_push_pull(pin)
 #define gpio_write_pin_high(pin) BMPAPI->gpio.set_pin(pin)
 #define gpio_write_pin_low(pin) BMPAPI->gpio.clear_pin(pin)
 #define gpio_write_pin(pin, level) ((level) ? writePinHigh(pin) : writePinLow(pin))

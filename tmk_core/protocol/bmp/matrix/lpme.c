@@ -92,7 +92,7 @@ static bool lpme_first_scan(lpme_config_t * const config)
              idx < sizeof(LPME_ADDR_LIST) / sizeof(LPME_ADDR_LIST[0]);
              idx++)
         {
-            uint8_t i2c_res = i2c_writeReg(
+            uint8_t i2c_res = i2c_write_register(
                 LPME_ADDR_LIST[idx], LPME_REG_OUTPUT0, lpme_init_packet, 1, 0);
             if (i2c_res == 0)
             {
@@ -105,7 +105,7 @@ static bool lpme_first_scan(lpme_config_t * const config)
     if (row_prepare_flag == false)
     {
         // set all row pins to low
-        i2c_writeReg(config->addr, LPME_REG_OUTPUT0,
+        i2c_write_register(config->addr, LPME_REG_OUTPUT0,
             lpme_init_packet, 2, 0);
         row_prepare_flag = true;
     }
@@ -113,7 +113,7 @@ static bool lpme_first_scan(lpme_config_t * const config)
     if (reconfig_flag)
     {
         // reset all pins I/O setting
-        i2c_writeReg(config->addr, LPME_REG_CONFIG0,
+        i2c_write_register(config->addr, LPME_REG_CONFIG0,
             &lpme_init_packet[4], 2, 0);
         reconfig_flag = false;
     }
@@ -164,7 +164,7 @@ static matrix_row_t lpme_read_row(lpme_config_t const * const config, uint8_t ro
     }
 
     // set a row pin to low
-    i2c_writeReg(config->addr, LPME_REG_OUTPUT0,
+    i2c_write_register(config->addr, LPME_REG_OUTPUT0,
         send_dat, sizeof(send_dat), 0);
 
     return lpme_read_col_on_row(config);

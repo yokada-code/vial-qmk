@@ -77,7 +77,7 @@ static inline uint8_t i2c_readReg(uint8_t devaddr, uint8_t regaddr, uint8_t* dat
     return BMPAPI->i2cm.read_reg(devaddr >> 1, regaddr, data, length, timeout);
 }
 
-static inline uint8_t i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8_t* data, uint16_t length, uint16_t timeout) {
+static inline uint8_t i2c_write_register(uint8_t devaddr, uint8_t regaddr, const uint8_t* data, uint16_t length, uint16_t timeout) {
     uint8_t  i2c_temporary_buffer[length];
     uint8_t* p_send;
 
@@ -93,7 +93,7 @@ static inline uint8_t i2c_writeReg(uint8_t devaddr, uint8_t regaddr, const uint8
     return BMPAPI->i2cm.write_reg(devaddr >> 1, regaddr, p_send, length, timeout);
 }
 
-static inline uint8_t i2c_writeReg16(uint8_t devaddr, uint16_t regaddr16, const uint8_t* data, uint16_t length, uint16_t timeout) {
+static inline uint8_t i2c_write_register16(uint8_t devaddr, uint16_t regaddr16, const uint8_t* data, uint16_t length, uint16_t timeout) {
     uint8_t i2c_temporary_buuffer[length + 2];
     i2c_temporary_buuffer[0] = regaddr16 >> 8;
     i2c_temporary_buuffer[1] = regaddr16 & 0xFF;

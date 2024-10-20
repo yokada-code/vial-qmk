@@ -23,29 +23,33 @@ enum {
 #define MATRIX_COLS MATRIX_COLS_DEFAULT
 
 const uint16_t keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-    [0] = LAYOUT_mini(
-        KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P,
-        MT(MOD_LCTL, KC_A), KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L, KC_SCLN,
-        MT(MOD_LSFT, KC_Z), KC_X, KC_C, KC_V, KC_B, KC_N, KC_M, KC_COMM, KC_DOT, MT(MOD_RSFT, KC_SLSH),
-        KC_LCTL, KC_LGUI, KC_LALT, KC_BSPC, LT(2, KC_SPC), MT(MOD_LSFT, KC_LNG1), MT(MOD_RSFT, KC_LNG2), LT(3, KC_ENT), KC_BSPC, KC_RALT, KC_RGUI, KC_RCTL
+    [0] = LAYOUT(
+        KC_ESC, KC_1, KC_2, KC_3, KC_4, KC_5, KC_6, KC_7, KC_8, KC_9, KC_0, KC_BSPC,
+        KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSPC,
+        KC_CAPS, MT(MOD_LCTL, KC_A), KC_S, KC_D, KC_F, KC_G, KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
+        KC_LSFT, MT(MOD_LSFT, KC_Z), KC_X, KC_C, KC_V, KC_B, LCTL(KC_C), LCTL(KC_V), KC_N, KC_M, KC_COMM, KC_DOT, MT(MOD_RSFT, KC_SLSH), KC_RSFT,
+        KC_LCTL, KC_LCTL, KC_LGUI, KC_LALT, KC_BSPC, LT(2, KC_SPC), MT(MOD_LSFT, KC_LNG1), MT(MOD_RSFT, KC_LNG2), LT(3, KC_ENT), KC_BSPC, KC_RALT, KC_RGUI, KC_RCTL, KC_RCTL
     ),
-    [1] = LAYOUT_mini(
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, 
-        _______, _______, KC_MS_BTN2, KC_MS_BTN1, _______, _______, KC_MS_BTN1, KC_MS_BTN2, _______, _______, 
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, 
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
+    [1] = LAYOUT(
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, KC_MS_BTN2, KC_MS_BTN1, _______, _______, KC_MS_BTN1, KC_MS_BTN2, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
     ),
-    [2] = LAYOUT_mini(
-        S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5), S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0),
-        KC_1, KC_2, KC_3, KC_4, KC_5, KC_LCBR, KC_MINS, KC_EQL, KC_RCBR, KC_COLN,
-        KC_6, KC_7, KC_8, KC_9, KC_0, KC_UNDS, KC_PLUS, KC_LBRC, KC_RBRC, KC_BSLS,
-        _______, _______, _______, _______, _______, _______, BATT_LV, KC_TAB, KC_DEL, _______, _______, _______
+    [2] = LAYOUT(
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, S(KC_1), S(KC_2), S(KC_3), S(KC_4), S(KC_5), S(KC_6), S(KC_7), S(KC_8), S(KC_9), S(KC_0), _______,
+        _______, KC_1, KC_2, KC_3, KC_4, KC_5, KC_LCBR, KC_MINS, KC_EQL, KC_RCBR, KC_COLN, _______,
+        _______, KC_6, KC_7, KC_8, KC_9, KC_0, _______, _______, KC_UNDS, KC_PLUS, KC_LBRC, KC_RBRC, KC_BSLS, _______,
+        _______, _______, _______, _______, _______, _______, _______, BATT_LV, KC_TAB, KC_DEL, _______, _______, _______, _______
     ),
-    [3] = LAYOUT_mini(
-        KC_F1, KC_F2, KC_F3, KC_F4, KC_F5,  KC_HOME, KC_PGDN, KC_PGUP, KC_END, KC_ESC,
-        KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_TAB,
-        KC_F11, KC_F12, SEL_USB, SEL_BLE, AD_WO_L, KC_QUOT, KC_DQT, KC_GRV, KC_TILD, KC_PIPE,
-        _______, _______, _______, KC_DEL, KC_TAB, BATT_LV, _______, _______, _______, _______, _______, _______
+    [3] = LAYOUT(
+        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        _______, KC_F1, KC_F2, KC_F3, KC_F4, KC_F5,  KC_HOME, KC_PGDN, KC_PGUP, KC_END, KC_ESC, _______,
+        _______, KC_F6, KC_F7, KC_F8, KC_F9, KC_F10, KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_TAB, _______,
+        _______, KC_F11, KC_F12, SEL_USB, SEL_BLE, AD_WO_L, _______, _______, KC_QUOT, KC_DQT, KC_GRV, KC_TILD, KC_PIPE, _______,
+        _______, _______, _______, _______, KC_DEL, KC_TAB, BATT_LV, _______, _______, _______, _______, _______, _______, _______
     ),
 };
 
@@ -235,11 +239,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 // perform as ignore mod tap interrupt
-extern bool get_hold_on_other_key_press_vial(uint16_t keycode, keyrecord_t *record);
-bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+extern bool __real_get_hold_on_other_key_press_vial(uint16_t keycode, keyrecord_t *record);
+bool __wrap_get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case QK_MOD_TAP ... QK_MOD_TAP_MAX:
-            return get_hold_on_other_key_press_vial(keycode, record);
+            return __real_get_hold_on_other_key_press_vial(keycode, record);
         default:
             return true;
     }

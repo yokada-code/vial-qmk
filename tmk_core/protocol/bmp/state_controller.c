@@ -2,7 +2,10 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "action_layer.h"
-#include "pointing_device.h"
+
+#if defined(POINTING_DEVICE_ENABLE)
+#    include "pointing_device.h"
+#endif
 
 // BMP
 #include "state_controller.h"

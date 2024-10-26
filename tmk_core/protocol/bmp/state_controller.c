@@ -172,7 +172,8 @@ static bool is_event_driven_applicable(void) {
 
 static bool is_any_key_pressed(void) {
     bool _is_any_key_pressed = false;
-    if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW_LPME || bmp_config->matrix.diode_direction == MATRIX_ROW2COL_LPME) {
+    if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW_LPME || bmp_config->matrix.diode_direction == MATRIX_ROW2COL_LPME //
+        || bmp_config->matrix.diode_direction == MATRIX_COL2ROW2COL || bmp_config->matrix.diode_direction == MATRIX_ROW2COL2ROW) {
         for (int i = 0; i < bmp_config->matrix.rows; i++) {
             if (matrix_get_row(i) != 0) {
                 _is_any_key_pressed |= true;

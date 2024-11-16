@@ -47,7 +47,10 @@ bmp_api_ble_conn_param_t get_periph_conn_param(uint8_t mode) {
         {.max_interval = BLE_INTERVAL_MASTER_3, .min_interval = BLE_INTERVAL_MASTER_3, .slave_latency = MAX_INTERVAL_MASTER / BLE_INTERVAL_MASTER_3}, //
 
     };
-    return mode < MODE_COUNT ? param[mode] : param[0];
+    return mode < MODE_COUNT ? param[mode]
+                             : (bmp_api_ble_conn_param_t){MAX(eeconfig_kb.battery.custom.periph_interval, 8), //
+                                                          MAX(eeconfig_kb.battery.custom.periph_interval, 8), //
+                                                          eeconfig_kb.battery.custom.periph_sl};
 }
 
 bmp_api_ble_conn_param_t get_central_conn_param(uint8_t mode) {
@@ -58,7 +61,7 @@ bmp_api_ble_conn_param_t get_central_conn_param(uint8_t mode) {
         {.max_interval = 1 * BLE_INTERVAL_SLAVE_3, .min_interval = BLE_INTERVAL_SLAVE_3, .slave_latency = MAX_INTERVAL_SLAVE / BLE_INTERVAL_SLAVE_3}, //
 
     };
-    return mode < MODE_COUNT ? param[mode] : param[0];
+    return param[mode % MODE_COUNT];
 }
 
 static uint32_t get_interval_tb(uint8_t mode) {
@@ -98,36 +101,36 @@ void keyboard_post_init_kb(void) {
 }
 
 void matrix_init_kb() {
-    setPinInputHigh(CONFIG_HALF_DUPLEX_PIN);
-    setPinInputHigh(TB_MOTION);
+    gpio_set_pin_input_high(CONFIG_HALF_DUPLEX_PIN);
+    gpio_set_pin_input_high(TB_MOTION);
 
     // turn on trackball and sr
-    writePinHigh(TB_POW);
-    writePinHigh(SR_POW);
-    setPinOutput(TB_POW);
-    setPinOutput(SR_POW);
-    writePinHigh(CS_PIN_TB0);
-    writePinLow(CONFIG_SCK_PIN);
-    setPinOutput(CS_PIN_TB0);
-    setPinOutput(CONFIG_SCK_PIN);
+    gpio_write_pin_high(TB_POW);
+    gpio_write_pin_high(SR_POW);
+    gpio_set_pin_output_push_pull(TB_POW);
+    gpio_set_pin_output_push_pull(SR_POW);
+    gpio_write_pin_high(CS_PIN_TB0);
+    gpio_write_pin_low(CONFIG_SCK_PIN);
+    gpio_set_pin_output_push_pull(CS_PIN_TB0);
+    gpio_set_pin_output_push_pull(CONFIG_SCK_PIN);
 
     // reset io expanders
-    setPinOutput(IO_RESET);
-    writePinLow(IO_RESET);
+    gpio_set_pin_output_push_pull(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
 
-    writePinHigh(SR_DATA);
-    writePinLow(SR_CLK);
-    setPinOutput(SR_DATA);
-    setPinOutput(SR_CLK);
+    gpio_write_pin_high(SR_DATA);
+    gpio_write_pin_low(SR_CLK);
+    gpio_set_pin_output_push_pull(SR_DATA);
+    gpio_set_pin_output_push_pull(SR_CLK);
 
     // deassert reset
-    writePinHigh(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 
-    writePinHigh(SR_DATA);
+    gpio_write_pin_high(SR_DATA);
     wait_us(1);
     for (int idx = 0; idx < 16; idx++) {
-        writePinHigh(SR_CLK);
-        writePinLow(SR_CLK);
+        gpio_write_pin_high(SR_CLK);
+        gpio_write_pin_low(SR_CLK);
     }
 
     matrix_init_user();
@@ -138,7 +141,9 @@ void                 matrix_scan_kb(void) {
     // assign TB_MOTION to matrix
     // This enable PERMISSIVE_HOLD with trackball move
     matrix[0] &= ~(1 << (MATRIX_COLS_DEFAULT - 1));
-    matrix[0] |= ((readPin(TB_MOTION) ? 0 : 1) << (MATRIX_COLS_DEFAULT - 1));
+    if (is_auto_mouse_active()) {
+        matrix[0] |= ((readPin(TB_MOTION) ? 0 : 1) << (MATRIX_COLS_DEFAULT - 1));
+    }
     matrix_scan_user();
 }
 
@@ -153,8 +158,8 @@ void bmp_before_sleep(void) {
     trackball_shutdown();
 
     // clear all cols
-    writePinLow(IO_RESET);
-    writePinHigh(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 }
 
 void bmp_before_shutdown(void) {
@@ -174,14 +179,15 @@ bool bmp_config_overwrite(bmp_api_config_t const *const config_on_storage,
     bmp_api_ble_conn_param_t conn_master = get_periph_conn_param(0);
     bmp_api_ble_conn_param_t conn_slave  = get_central_conn_param(0);
 
-    new_config.mode                           = config_on_storage->mode;
-    new_config.startup                        = config_on_storage->startup;
-    new_config.matrix.debounce                = MAX(BMP_DEBOUNCE, config_on_storage->matrix.debounce);
-    new_config.matrix.is_left_hand            = config_on_storage->matrix.is_left_hand;
-    new_config.param_peripheral               = config_on_storage->mode == SPLIT_SLAVE ? conn_slave : conn_master;
-    new_config.param_central                  = conn_slave;
-    new_config.reserved[2]                    = config_on_storage->reserved[2];
-    *keyboard_config                          = new_config;
+    new_config.mode                = config_on_storage->mode;
+    new_config.startup             = config_on_storage->startup;
+    new_config.matrix.debounce     = MAX(BMP_DEBOUNCE, config_on_storage->matrix.debounce);
+    new_config.matrix.is_left_hand = config_on_storage->matrix.is_left_hand;
+    new_config.param_peripheral    = config_on_storage->mode == SPLIT_SLAVE ? conn_slave : conn_master;
+    new_config.param_central       = conn_slave;
+    new_config.reserved[2]         = config_on_storage->reserved[2];
+    memset(&new_config.encoder, 0, sizeof(new_config.encoder));
+    *keyboard_config = new_config;
     return true;
 }
 

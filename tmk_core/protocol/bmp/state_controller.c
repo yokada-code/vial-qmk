@@ -1,12 +1,20 @@
 // Copyright 2023 sekigon-gonnoc
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "action_layer.h"
+
+#if defined(POINTING_DEVICE_ENABLE)
+#    include "pointing_device.h"
+#endif
+
 // BMP
 #include "state_controller.h"
 #include "bmp_host_driver.h"
 #include "bmp_indicator_led.h"
 #include "bmp.h"
 #include "bmp_matrix.h"
+#include "bmp_file.h"
+#include "bmp_settings.h"
 
 int sleep_enter_counter     = -1;
 int reset_counter           = -1;
@@ -18,6 +26,8 @@ static bool is_ble_connected_ = false;
 static bool is_event_driven_applicable_ = false;
 
 static uint32_t auto_sleep_timeout_ms = 0;
+
+static layer_state_t default_layer_cache;
 
 bool is_usb_connected(void) {
     return is_usb_connected_;
@@ -49,6 +59,10 @@ __attribute__((weak)) void bmp_before_shutdown(void) {
 __attribute__((weak)) void bmp_state_change_cb_user(bmp_api_event_t event) {}
 __attribute__((weak)) void bmp_state_change_cb_kb(bmp_api_event_t event) {
     bmp_state_change_cb_user(event);
+}
+
+layer_state_t get_bmp_default_layer_cache(void) {
+    return default_layer_cache;
 }
 
 bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
@@ -96,12 +110,26 @@ bmp_error_t bmp_state_change_cb(bmp_api_event_t event) {
                 select_ble();
             }
             bmp_indicator_set(INDICATOR_CONNECTED, 0);
+
+            default_layer_and(~default_layer_cache);
+            uint8_t connection_layer = bmp_settings_get_connection_setting_layer(BMPAPI->ble.get_connection_status() & 0xff);
+            if (connection_layer >= 0) {
+                if (get_ble_enabled()) {
+                    default_layer_or(1 << connection_layer);
+                }
+                default_layer_cache = (1 << connection_layer);
+            } else {
+                default_layer_cache = 0;
+            }
+
             bmp_set_enable_task_interval_stretch(false);
             bmp_schedule_next_task();
             break;
 
         case BLE_DISCONNECTED:
             is_ble_connected_ = false;
+            default_layer_and(~default_layer_cache);
+            default_layer_cache = 0;
             // Disable below code because BLE could be disconnected unintentionally
             // if (is_usb_connected()) {
             //     select_usb();
@@ -143,11 +171,20 @@ static bool is_event_driven_applicable(void) {
 }
 
 static bool is_any_key_pressed(void) {
-    uint8_t matrix_offset      = bmp_config->matrix.is_left_hand ? 0 : bmp_config->matrix.rows - bmp_matrix_get_device_row();
-    bool    _is_any_key_pressed = false;
-    for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
-        if (matrix_get_row(i + matrix_offset) != 0) {
-            _is_any_key_pressed |= true;
+    bool _is_any_key_pressed = false;
+    if (bmp_config->matrix.diode_direction == MATRIX_COL2ROW_LPME || bmp_config->matrix.diode_direction == MATRIX_ROW2COL_LPME //
+        || bmp_config->matrix.diode_direction == MATRIX_COL2ROW2COL || bmp_config->matrix.diode_direction == MATRIX_ROW2COL2ROW) {
+        for (int i = 0; i < bmp_config->matrix.rows; i++) {
+            if (matrix_get_row(i) != 0) {
+                _is_any_key_pressed |= true;
+            }
+        }
+    } else {
+        uint8_t matrix_offset = bmp_config->matrix.is_left_hand ? 0 : bmp_config->matrix.rows - bmp_matrix_get_device_row();
+        for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
+            if (matrix_get_row(i + matrix_offset) != 0) {
+                _is_any_key_pressed |= true;
+            }
         }
     }
 
@@ -192,6 +229,8 @@ void bmp_mode_transition_check(void) {
             BMPAPI->bootloader_jump();
         }
     }
+
+    flush_bmp_file();
 }
 
 static bool task_interval_stretch;
@@ -218,24 +257,37 @@ void bmp_schedule_next_task(void) {
     } else if (timer_elapsed32(last_key_press_time) < MAINTASK_INTERVAL //
                || !task_interval_stretch) {
         schedule_next_task_internal(MAINTASK_INTERVAL);
-    } else {
+    }
+#if defined(POINTING_DEVICE_ENABLE) && !defined(POINTING_DEVICE_DRIVER_custom)
+    else if (is_keyboard_master()) {
+        report_mouse_t local_mouse_report = pointing_device_get_report();
+        if (local_mouse_report.x == 0 && local_mouse_report.y == 0    //
+            && local_mouse_report.h == 0 && local_mouse_report.v == 0 //
+            && local_mouse_report.buttons == 0) {
+            schedule_next_task_internal(MAINTASK_INTERVAL * 3);
+        } else {
+            schedule_next_task_internal(MAINTASK_INTERVAL);
+        }
+    }
+#endif
+    else {
         if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_COL2ROW){
             for (int i = 0; i < bmp_config->matrix.device_rows; i++) {
-                writePinLow(bmp_config->matrix.row_pins[i]);
+                gpio_write_pin_low(bmp_config->matrix.row_pins[i]);
             }
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_74HC164COL) {
-            writePinLow(bmp_config->matrix.col_pins[2]);
-            writePinHigh(bmp_config->matrix.col_pins[2]);
+            gpio_write_pin_low(bmp_config->matrix.col_pins[2]);
+            gpio_write_pin_high(bmp_config->matrix.col_pins[2]);
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_ROW2COL) {
             for (int i = 0; i < bmp_config->matrix.device_cols; i++) {
-                writePinLow(bmp_config->matrix.col_pins[i]);
+                gpio_write_pin_low(bmp_config->matrix.col_pins[i]);
             }
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else if (is_event_driven_applicable_ && bmp_config->matrix.diode_direction == MATRIX_74HC164ROW) {
-            writePinLow(bmp_config->matrix.row_pins[2]);
-            writePinHigh(bmp_config->matrix.row_pins[2]);
+            gpio_write_pin_low(bmp_config->matrix.row_pins[2]);
+            gpio_write_pin_high(bmp_config->matrix.row_pins[2]);
             BMPAPI->app.schedule_next_task(BMP_SCHEDULE_WAIT_NEXT_EVENT);
         } else {
             if (timer_elapsed32(last_key_press_time) > 200) {

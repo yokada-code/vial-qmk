@@ -40,7 +40,7 @@ static uint8_t cs;
 
 static void write_reg(uint8_t addr, uint8_t val)
 {
-    writePinLow(cs);
+    gpio_write_pin_low(cs);
 
     uint8_t dat[2];
     dat[0] = REG_ADDR_SPI_CLK_ON | REG_ADDR_WRITE_FLAG;
@@ -55,18 +55,18 @@ static void write_reg(uint8_t addr, uint8_t val)
     dat[1] = REG_VALUE_SCLK_DISABLE;
     spim_start(dat, 2, NULL, 0, 0);
 
-    writePinHigh(cs);
+    gpio_write_pin_high(cs);
 }
 
 static uint8_t read_reg(uint8_t addr)
 {
-    writePinLow(cs);
+    gpio_write_pin_low(cs);
 
     uint8_t dat = addr;
     spim_start(&dat, 1, NULL, 0, 0);
     spim_start(NULL, 0, &dat, 1, 0);
 
-    writePinHigh(cs);
+    gpio_write_pin_high(cs);
 
     return dat;
 }
@@ -79,9 +79,9 @@ int trackball_init(uint8_t cs_pin) {
 
     uint8_t retry = 10;
     do {
-        writePinLow(cs);
+        gpio_write_pin_low(cs);
         wait_us(150);
-        writePinHigh(cs);
+        gpio_write_pin_high(cs);
         wait_us(150);
 
         trackball_wakeup();
@@ -119,13 +119,13 @@ void trackball_shutdown(void) {
 }
 
 trackball_data_t trackball_get(void) {
-    writePinLow(cs);
+    gpio_write_pin_low(cs);
 
     uint8_t dat[4] = {REG_ADDR_BURST_READ};
     spim_start(dat, 1, NULL, 0, 0);
     spim_start(NULL, 0, dat, 4, 0);
 
-    writePinHigh(cs);
+    gpio_write_pin_high(cs);
 
     trackball_data_t res = {
         .stat = dat[0],

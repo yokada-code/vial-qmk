@@ -52,15 +52,15 @@ static void init_col2row(void) {
     for (int i = 0; i < config->matrix.device_rows; i++) {
         const uint8_t pin = config->matrix.row_pins[i];
         if (pin != 0) {
-            setPinOd(pin);
-            writePinHigh(pin);
+            gpio_set_pin_output_open_drain(pin);
+            gpio_write_pin_high(pin);
         }
     }
 
     for (int i = 0; i < config->matrix.device_cols; i++) {
         const uint8_t pin = config->matrix.col_pins[i];
         if (pin != 0) {
-            setPinInputHigh(pin);
+            gpio_set_pin_input_high(pin);
         }
     }
 }
@@ -156,15 +156,15 @@ static void init_row2col(void) {
     for (int i = 0; i < config->matrix.device_rows; i++) {
         const uint8_t pin = config->matrix.row_pins[i];
         if (pin != 0) {
-            setPinInputHigh(pin);
+            gpio_set_pin_input_high(pin);
         }
     }
 
     for (int i = 0; i < config->matrix.device_cols; i++) {
         const uint8_t pin = config->matrix.col_pins[i];
         if (pin != 0) {
-            setPinOd(pin);
-            writePinHigh(pin);
+            gpio_set_pin_output_open_drain(pin);
+            gpio_write_pin_high(pin);
         }
     }
 }

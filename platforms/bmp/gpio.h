@@ -31,17 +31,24 @@ static const bmp_api_gpio_mode_t bmp_gpio_in_pd = {
 static const bmp_api_gpio_mode_t bmp_gpio_default = {
     .dir  = BMP_MODE_DEFAULT,
 };
+static const bmp_api_gpio_mode_t bmp_gpio_out_od = {
+    .dir = BMP_MODE_OUTPUT,
+    .pull = BMP_PULL_NONE,
+    .drive = BMP_PIN_S0D1
+};
 static const bmp_api_gpio_mode_t bmp_gpio_inout  = {.dir = BMP_MODE_INOUT, .pull = BMP_PULL_NONE, .drive = BMP_PIN_S0S1};
 static const bmp_api_gpio_mode_t bmp_gpio_out_pp = {.dir = BMP_MODE_OUTPUT, .pull = BMP_PULL_NONE, .drive = BMP_PIN_S0S1};
-#define setPinInput(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pu)
-#define setPinInputHigh(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pu)
-#define setPinInputLow(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pd)
-#define setPinOutput(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_pp)
-#define setPinDefault(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_default)
-#define writePinHigh(pin) BMPAPI->gpio.set_pin(pin)
-#define writePinLow(pin) BMPAPI->gpio.clear_pin(pin)
-#define writePin(pin, level) ((level) ? writePinHigh(pin) : writePinLow(pin))
+#define gpio_set_pin_input(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pu)
+#define gpio_set_pin_input_high(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pu)
+#define gpio_set_pin_input_low(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_in_pd)
+#define gpio_set_pin_output_push_pull(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_pp)
+#define gpio_set_pin_output_open_drain(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_out_od)
+#define gpio_set_pin_output(pin) gpio_set_pin_output_push_pull(pin)
+#define gpio_write_pin_high(pin) BMPAPI->gpio.set_pin(pin)
+#define gpio_write_pin_low(pin) BMPAPI->gpio.clear_pin(pin)
+#define gpio_write_pin(pin, level) ((level) ? writePinHigh(pin) : writePinLow(pin))
 
-#define readPin(pin) BMPAPI->gpio.read_pin(pin)
+#define gpio_read_pin(pin) BMPAPI->gpio.read_pin(pin)
 
 #define setPinInOut(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_inout)
+#define setPinDefault(pin) BMPAPI->gpio.set_mode(pin, &bmp_gpio_default)

@@ -23,6 +23,7 @@
 #include "action_util.h"
 #include "quantum.h"
 #include "quantum_keycodes.h"
+#include "qmk_settings.h"
 
 #ifndef KEY_OVERRIDE_REPEAT_DELAY
 #    define KEY_OVERRIDE_REPEAT_DELAY 500
@@ -368,6 +369,10 @@ static bool try_activating_override(const uint16_t keycode, const uint8_t layer,
                 send_keyboard_report();
             } else {
                 if (IS_BASIC_KEYCODE(mod_free_replacement)) {
+                    // For improve modifier key reliability in RDP, send mods and keys separately
+                    send_keyboard_report();
+                    wait_ms(QS_tap_code_delay);
+
                     add_key(mod_free_replacement);
                 } else {
                     key_override_printf("NOT KEY 2\n");

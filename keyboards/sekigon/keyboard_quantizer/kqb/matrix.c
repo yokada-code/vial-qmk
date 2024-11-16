@@ -107,19 +107,19 @@ void qt_matrix_init(void) {
 
     qt_spis_init();
 
-    setPinOutput(KQB_PIN_CHRST);
+    gpio_set_pin_output_push_pull(KQB_PIN_CHRST);
     // Assert reset
-    writePinHigh(KQB_PIN_CHRST);
+    gpio_write_pin_high(KQB_PIN_CHRST);
 
-    setPinOutput(KQB_PIN_CHBOOT);
-    writePinLow(KQB_PIN_CHBOOT);
+    gpio_set_pin_output_push_pull(KQB_PIN_CHBOOT);
+    gpio_write_pin_low(KQB_PIN_CHBOOT);
 
-    setPinInputHigh(BOOTPIN);
+    gpio_set_pin_input_high(BOOTPIN);
 
-    setPinOutput(KQB_PIN_LED0);
+    gpio_set_pin_output_push_pull(KQB_PIN_LED0);
 
     // Deassrt reset
-    writePinLow(KQB_PIN_CHRST);
+    gpio_write_pin_low(KQB_PIN_CHRST);
     ch559_start = false;
 }
 
@@ -135,9 +135,9 @@ uint32_t qt_matrix_scan(matrix_row_t *matrix_raw) {
 
     if (led_on_count) {
         led_on_count--;
-        writePinHigh(KQB_PIN_LED0);
+        gpio_write_pin_high(KQB_PIN_LED0);
     } else {
-        writePinLow(KQB_PIN_LED0);
+        gpio_write_pin_low(KQB_PIN_LED0);
     }
 
     if (readPin(BOOTPIN) == 0 && reset_counter < 0) {

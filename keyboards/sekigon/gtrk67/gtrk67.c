@@ -12,6 +12,7 @@
 #include "state_controller.h"
 #include "bmp_matrix.h"
 #include "spi.h"
+#include "bmp_settings.h"
 
 #include "report.h"
 #include "pointing_device.h"
@@ -39,40 +40,40 @@ void keyboard_post_init_kb(void) { debug_enable = false; }
 
 void matrix_init_kb() {
 
-    writePinHigh(CS_PIN_TB0);
-    writePinLow(SPI_SCK);
-    writePinLow(SPI_MOSI);
-    setPinOutput(CS_PIN_TB0);
-    setPinOutput(SPI_SCK);
-    setPinOutput(SPI_MOSI);
+    gpio_write_pin_high(CS_PIN_TB0);
+    gpio_write_pin_low(SPI_SCK);
+    gpio_write_pin_low(SPI_MOSI);
+    gpio_set_pin_output_push_pull(CS_PIN_TB0);
+    gpio_set_pin_output_push_pull(SPI_SCK);
+    gpio_set_pin_output_push_pull(SPI_MOSI);
 
     // turn off trackball
-    setPinOutput(TB_POW);
-    writePinHigh(TB_POW);
+    gpio_set_pin_output_push_pull(TB_POW);
+    gpio_write_pin_high(TB_POW);
 
     // reset io expanders
-    setPinOutput(IO_RESET);
-    writePinLow(IO_RESET);
+    gpio_set_pin_output_push_pull(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
 
-    writePinHigh(SR_DATA);
-    writePinLow(SR_CLK);
-    setPinOutput(SR_DATA);
-    setPinOutput(SR_CLK);
+    gpio_write_pin_high(SR_DATA);
+    gpio_write_pin_low(SR_CLK);
+    gpio_set_pin_output_push_pull(SR_DATA);
+    gpio_set_pin_output_push_pull(SR_CLK);
 
-    writePinHigh(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 
     // turn on trackball
-    // writePinLow(TB_POW);
+    // gpio_write_pin_low(TB_POW);
 
-    writePinHigh(SR_POW);
-    setPinOutput(SR_POW);
+    gpio_write_pin_high(SR_POW);
+    gpio_set_pin_output_push_pull(SR_POW);
 
     setPinInputNopull(SPI_MISO);
 
-    writePinHigh(SR_DATA);
+    gpio_write_pin_high(SR_DATA);
     for (int idx = 0; idx < 16; idx++) {
-        writePinHigh(SR_CLK);
-        writePinLow(SR_CLK);
+        gpio_write_pin_high(SR_CLK);
+        gpio_write_pin_low(SR_CLK);
     }
 
     matrix_init_user();
@@ -97,10 +98,10 @@ void matrix_scan_kb() {
     const int wait1 = 120;
     const int wait2 = 250;
     if (initialize_step < 2) {
-        writePinHigh(TB_POW);
+        gpio_write_pin_high(TB_POW);
         initialize_step++;
     } else if (initialize_step < wait0) {
-        writePinLow(TB_POW);
+        gpio_write_pin_low(TB_POW);
         initialize_step++;
     } else if (initialize_step == wait0) {
         spim_init();
@@ -186,10 +187,10 @@ void matrix_scan_kb() {
 
 void bmp_before_sleep(void) {
     // turn off trackball
-    writePinHigh(TB_POW);
+    gpio_write_pin_high(TB_POW);
     // clear all cols
-    writePinLow(IO_RESET);
-    writePinHigh(IO_RESET);
+    gpio_write_pin_low(IO_RESET);
+    gpio_write_pin_high(IO_RESET);
 }
 
 bool checkSafemodeFlag(bmp_api_config_t const *const config) { return false; }
@@ -236,10 +237,25 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     return cont;
 }
 
+void via_custom_value_command_kb(uint8_t *data, uint8_t length) {
+    // data = [ command_id, channel_id, value_id, value_data ]
+    uint8_t *command_id        = &(data[0]);
+    uint8_t *channel_id        = &(data[1]);
+    uint8_t *value_id_and_data = &(data[2]);
+
+    if (*channel_id == id_custom_channel) {
+        printf("command:%d channel:%d value_id:%d value:%d\n", *command_id, *channel_id, value_id_and_data[0], value_id_and_data[1]);
+    }
+
+    via_custom_value_command_bmp(data, length);
+}
+
 void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
     uint8_t *command_id = &(data[0]);
     if (*command_id == id_set_keyboard_value) {
         // This version does not handle save flag
+    } else if (*command_id == id_unhandled) {
+        via_custom_value_command_kb(&data[1], length - 1);
     } else {
         *command_id = id_unhandled;
     }

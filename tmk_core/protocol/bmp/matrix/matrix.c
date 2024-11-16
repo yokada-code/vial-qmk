@@ -131,7 +131,7 @@ void matrix_init(void) {
     matrix_init_quantum();
 
 #if defined(BMP_BOOTPIN_AS_RESET)
-    setPinInputHigh(BOOTPIN);
+    gpio_set_pin_input_high(BOOTPIN);
 #endif
 
     BMPAPI->ble.set_nus_disconnect_cb(matrix_on_slave_disconnect);

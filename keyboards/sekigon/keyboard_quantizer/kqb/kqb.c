@@ -111,9 +111,9 @@ void uart_putchar(uint8_t c) {
 int send_reset_cmd(void) {
     // send reset command to ch559
 
-    writePinHigh(KQB_PIN_CHRST);
+    gpio_write_pin_high(KQB_PIN_CHRST);
     xprintf("send reset\n");
-    writePinLow(KQB_PIN_CHRST);
+    gpio_write_pin_low(KQB_PIN_CHRST);
 
     return 0;
 }
@@ -220,7 +220,7 @@ void bmp_before_sleep(void) {
     bmp_api_config_t config = *BMPAPI->app.get_config();
     config.matrix.diode_direction = 0xff;
     BMPAPI->app.set_config(&config);
-    setPinInputLow(KQB_PIN_LED0);
+    gpio_set_pin_input_low(KQB_PIN_LED0);
 }
 
 bool checkSafemodeFlag(bmp_api_config_t const *const config) { return false; }
@@ -293,12 +293,12 @@ void pass_uart(void *_context) {
 MSCMD_USER_RESULT usrcmd_chboot(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
     ch559_update_mode = true;
 
-    writePinHigh(KQB_PIN_CHRST);
+    gpio_write_pin_high(KQB_PIN_CHRST);
     // xprintf("Assert reset\n");
-    setPinOutput(KQB_PIN_CHBOOT);
-    writePinHigh(KQB_PIN_CHBOOT);
+    gpio_set_pin_output_push_pull(KQB_PIN_CHBOOT);
+    gpio_write_pin_high(KQB_PIN_CHBOOT);
     // xprintf("Dessert reset\n");
-    writePinLow(KQB_PIN_CHRST);
+    gpio_write_pin_low(KQB_PIN_CHRST);
 
     BMPAPI->ble.disconnect(1);
     BMPAPI->spis.init(NULL);

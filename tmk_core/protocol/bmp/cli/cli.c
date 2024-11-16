@@ -190,7 +190,8 @@ static MSCMD_USER_RESULT usrcmd_select_connection(MSOPT *msopt, MSCMD_USER_OBJEC
 
 static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
     bmp_api_bonding_info_t peers[8];
-    uint32_t               peer_cnt = sizeof(peers) / sizeof(peers[0]);
+    uint32_t               peer_cnt     = sizeof(peers) / sizeof(peers[0]);
+    const uint8_t          empty_name[] = "";
 
     BMPAPI->ble.get_bonding_info(peers, &peer_cnt);
 
@@ -200,7 +201,13 @@ static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt, MSCMD_USER_OBJ
 
     for (int i = 0; i < peer_cnt; i++) {
         // print mac address
-        printf("{\"id\":%2d, \"type\":\"%s\",\"name\":\"%s\",\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\"}", peers[i].id, (peers[i].role == 2) ? "Slave " : (config->mode == SPLIT_SLAVE) ? "Master" : "Device", peers[i].name, peers[i].addr[5], peers[i].addr[4], peers[i].addr[3], peers[i].addr[2], peers[i].addr[1], peers[i].addr[0]);
+        printf("{\"id\":%2d, \"type\":\"%s\",\"name\":\"%s\",\"mac\":\"%02x:%02x:%02x:%02x:%02x:%02x\"}", //
+               peers[i].id,
+               (peers[i].role == 2)            ? "Slave "
+               : (config->mode == SPLIT_SLAVE) ? "Master"
+                                               : "Device",                                  //
+               ((peers[i].role != 2 && config->mode != SPLIT_SLAVE) ? peers[i].name : empty_name), //
+               peers[i].addr[5], peers[i].addr[4], peers[i].addr[3], peers[i].addr[2], peers[i].addr[1], peers[i].addr[0]);
 
         if (i < peer_cnt - 1) {
             microshell.uart_putc(',');
@@ -227,18 +234,21 @@ static MSCMD_USER_RESULT usrcmd_delete_bonding(MSOPT *msopt, MSCMD_USER_OBJECT u
 }
 
 static MSCMD_USER_RESULT usrcmd_config(MSOPT *msopt, MSCMD_USER_OBJECT usrobj) {
+    const bmp_api_config_t *config = BMPAPI->app.get_config();
     printf("Mode: %d\n"
            "Is Left: %d\n"
            "Debounce: %d\n"
            "Auto sleep[min]: %d\n"
            "Interval(Peripheral)[ms]: %d\n"
+           "Slave letency(Peripheral): %d\n"
            "Interval(Central)[ms]: %d\n",
-           bmp_config->mode, //
-           bmp_config->matrix.is_left_hand,
-           bmp_config->matrix.debounce,               //
-           bmp_config->reserved[2] * 10,                   //
-           bmp_config->param_peripheral.min_interval, //
-           bmp_config->param_central.min_interval);
+           config->mode, //
+           config->matrix.is_left_hand,
+           config->matrix.debounce,                //
+           config->reserved[2] * 10,               //
+           config->param_peripheral.min_interval,  //
+           config->param_peripheral.slave_latency, //
+           config->param_central.min_interval);
     return 0;
 }
 

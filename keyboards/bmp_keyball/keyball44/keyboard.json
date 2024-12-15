@@ -1,0 +1,105 @@
+{
+    "usb": {
+        "vid": "0x5957",
+        "pid": "0x0400",
+        "device_version": "1.0.0"
+    },
+    "manufacturer": "Yowkees",
+    "keyboard_name": "Keyball44",
+    "diode_direction": "COL2ROW",
+    "matrix_pins": {
+        "cols": [7, 8, 9, 10, 11, 12],
+        "rows": [20, 19, 18, 17]
+    },
+    "encoder": {
+        "rotary": [
+            { "pin_a": "NO_PIN", "pin_b": "NO_PIN" }
+        ]
+    },
+    "split": {
+        "enabled": true,
+        "transport": {
+            "protocol": "custom"
+        }
+    },
+    "layouts": {
+        "LAYOUT_right_ball": {
+            "layout": [
+                { "matrix": [ 0, 0], "label": "L00", "x": 0, "y": 0 },
+                { "matrix": [ 0, 1], "label": "L01", "x": 1, "y": 0 },
+                { "matrix": [ 0, 2], "label": "L02", "x": 2, "y": 0 },
+                { "matrix": [ 0, 3], "label": "L03", "x": 3, "y": 0 },
+                { "matrix": [ 0, 4], "label": "L04", "x": 4, "y": 0 },
+                { "matrix": [ 0, 5], "label": "L05", "x": 5, "y": 0 },
+                { "matrix": [ 4, 5], "label": "R05", "x": 7, "y": 0 },
+                { "matrix": [ 4, 4], "label": "R04", "x": 8, "y": 0 },
+                { "matrix": [ 4, 3], "label": "R03", "x": 9, "y": 0 },
+                { "matrix": [ 4, 2], "label": "R02", "x":10, "y": 0 },
+                { "matrix": [ 4, 1], "label": "R01", "x":11, "y": 0 },
+                { "matrix": [ 4, 0], "label": "R00", "x":12, "y": 0 },
+
+                { "matrix": [ 1, 0], "label": "L10", "x": 0, "y": 1 },
+                { "matrix": [ 1, 1], "label": "L11", "x": 1, "y": 1 },
+                { "matrix": [ 1, 2], "label": "L12", "x": 2, "y": 1 },
+                { "matrix": [ 1, 3], "label": "L13", "x": 3, "y": 1 },
+                { "matrix": [ 1, 4], "label": "L14", "x": 4, "y": 1 },
+                { "matrix": [ 1, 5], "label": "L15", "x": 5, "y": 1 },
+                { "matrix": [ 5, 5], "label": "R15", "x": 7, "y": 1 },
+                { "matrix": [ 5, 4], "label": "R14", "x": 8, "y": 1 },
+                { "matrix": [ 5, 3], "label": "R13", "x": 9, "y": 1 },
+                { "matrix": [ 5, 2], "label": "R12", "x":10, "y": 1 },
+                { "matrix": [ 5, 1], "label": "R11", "x":11, "y": 1 },
+                { "matrix": [ 5, 0], "label": "R10", "x":12, "y": 1 },
+
+                { "matrix": [ 2, 0], "label": "L20", "x": 0, "y": 2 },
+                { "matrix": [ 2, 1], "label": "L21", "x": 1, "y": 2 },
+                { "matrix": [ 2, 2], "label": "L22", "x": 2, "y": 2 },
+                { "matrix": [ 2, 3], "label": "L23", "x": 3, "y": 2 },
+                { "matrix": [ 2, 4], "label": "L24", "x": 4, "y": 2 },
+                { "matrix": [ 2, 5], "label": "L25", "x": 5, "y": 2 },
+                { "matrix": [ 6, 5], "label": "R25", "x": 7, "y": 2 },
+                { "matrix": [ 6, 4], "label": "R24", "x": 8, "y": 2 },
+                { "matrix": [ 6, 3], "label": "R23", "x": 9, "y": 2 },
+                { "matrix": [ 6, 2], "label": "R22", "x":10, "y": 2 },
+                { "matrix": [ 6, 1], "label": "R21", "x":11, "y": 2 },
+                { "matrix": [ 6, 0], "label": "R20", "x":12, "y": 2 },
+
+                { "matrix": [ 3, 1], "label": "L31", "x": 1, "y": 3 },
+                { "matrix": [ 3, 2], "label": "L32", "x": 2, "y": 3 },
+                { "matrix": [ 3, 3], "label": "L33", "x": 3, "y": 3 },
+                { "matrix": [ 3, 4], "label": "L34", "x": 4, "y": 3 },
+                { "matrix": [ 3, 5], "label": "L35", "x": 5, "y": 3 },
+                { "matrix": [ 7, 5], "label": "R35", "x": 7, "y": 3 },
+                { "matrix": [ 7, 4], "label": "R34", "x": 8, "y": 3 },
+                //{ "$comment": "No item for matrix: [ 7, 3], label: R33, x: 9, y: 3; this is no-ball side" },
+                //{ "$comment": "No item for matrix: [ 7, 2], label: R32, x:10, y: 3; this is no-ball side" },
+                { "matrix": [ 7, 1], "label": "R31", "x":11, "y": 3 }
+            ]
+        }
+    },
+    "rgblight": {
+        "driver": "ws2812",
+        "led_count": 48,
+        "split_count": [24, 24],
+        "animations": {
+            "breathing": true,
+            "rainbow_mood": true,
+            "rainbow_swirl": true,
+            "snake": true,
+            "knight": true,
+            "christmas": true,
+            "static_gradient": true,
+            "rgb_test": true,
+            "alternating": true,
+            "twinkle": true
+        },
+        "brightness_steps": 15,
+        "hue_steps": 17,
+        "max_brightness": 150,
+        "saturation_steps": 17,
+        "split": true
+    },
+    "ws2812": {
+        "pin": 255
+    }
+}

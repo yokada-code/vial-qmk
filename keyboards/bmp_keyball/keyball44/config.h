@@ -35,3 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    define OLED_FONT_START 32
 #    define OLED_FONT_END 195
 #endif
+
+#include "platforms/pin_defs.h"
+#define ENCODERS_PAD_A { NO_PIN }
+#define ENCODERS_PAD_B { NO_PIN }

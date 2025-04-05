@@ -11,11 +11,6 @@
         "cols": [7, 8, 9, 10, 11, 12],
         "rows": [20, 19, 18, 17]
     },
-    "encoder": {
-        "rotary": [
-            { "pin_a": "NO_PIN", "pin_b": "NO_PIN" }
-        ]
-    },
     "split": {
         "enabled": true,
         "transport": {
@@ -23,7 +18,7 @@
         }
     },
     "layouts": {
-        "LAYOUT_right_ball": {
+        "LAYOUT": {
             "layout": [
                 { "matrix": [ 0, 0], "label": "L00", "x": 0, "y": 0 },
                 { "matrix": [ 0, 1], "label": "L01", "x": 1, "y": 0 },

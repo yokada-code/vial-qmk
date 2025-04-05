@@ -23,9 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "keyball.h"
 #include "apidef.h"
 #include "drivers/pmw3360/pmw3360.h"
+#include "print.h"
+#include "debug.h"
 
 #include <string.h>
 
+#define LEN_MOTION (sizeof(keyball_motion_t)/sizeof(uint8_t))
 const uint8_t CPI_DEFAULT    = KEYBALL_CPI_DEFAULT / 100;
 const uint8_t CPI_MAX        = pmw3360_MAXCPI + 1;
 const uint8_t SCROLL_DIV_MAX = 7;
@@ -333,6 +336,7 @@ static void init_keyball_master(void) {
     keyball.that_have_ball = keyball.this_have_ball ? 0 : 1;
     //dprintf("keyball:rpc_get_info_invoke: negotiated #%d %d\n", round, keyball.that_have_ball);
 
+/*
 #    ifdef VIA_ENABLE
     // adjust VIA layout options according to current combination.
     uint8_t  layouts = (keyball.this_have_ball \
@@ -345,6 +349,7 @@ static void init_keyball_master(void) {
         via_set_layout_options(next);
     }
 #    endif
+*/
 
     keyball_on_adjust_layout(KEYBALL_ADJUST_PRIMARY);
 }
@@ -604,9 +609,34 @@ bmp_error_t keyball_nus_rcv_callback_slave(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
+static uint8_t dat[LEN_MOTION];
+
+void keyball_user_data_callback_master(uint8_t id, uint8_t data) {
+    static uint8_t seq_no = 0;
+    static uint8_t packet_no;
+
+    if (id != seq_no) {
+        seq_no = id;
+        packet_no = 0;
+        dprintf("seq: %02d, ", id);
+    } else {
+        packet_no++;
+    }
+    dat[packet_no] = data;
+    //dprintf("%02x, ", data);
+    if (packet_no == LEN_MOTION -1) {
+        keyball_motion_t recv = *(keyball_motion_t *) dat;
+        dprintf("(%04x, %04x)\n", recv.x, recv.y);
+        keyball.that_motion.x = add16(keyball.that_motion.x, recv.x);
+        keyball.that_motion.y = add16(keyball.that_motion.y, recv.y);
+    }
+}
+
 bmp_error_t keyball_nus_rcv_callback_master(const uint8_t *dat, uint32_t len) {
+    dprintf("get data\n");
     if (len == sizeof(keyball_motion_t)) {  //1B
         keyball.this_motion = *(keyball_motion_t *) dat;
+        dprintf("get ball data\n");
     }
 
     return BMP_OK;
@@ -627,6 +657,7 @@ void keyboard_post_init_kb(void) {
     if (is_keyboard_master()) {
         init_keyball_master();
         BMPAPI->ble.set_nus_rcv_cb(keyball_nus_rcv_callback_master);
+        BMPAPI->ble.set_user_data_cb(keyball_user_data_callback_master);
     } else {
         BMPAPI->ble.set_nus_rcv_cb(keyball_nus_rcv_callback_slave);
     }
@@ -849,7 +880,19 @@ void matrix_scan_kb() {
         //BMPAPI->app.schedule_next_task(MATRIX_SCAN_TIME_MS);
     }
     if (!is_keyboard_master()) {
-        BMPAPI->ble.nus_send_bytes((uint8_t *)&keyball.this_motion, sizeof(keyball_motion_t));
+        static uint8_t seq_no = 0;
+        seq_no++;
+        if (seq_no >= 16) {
+            seq_no = 0;
+        }
+        keyball_motion_t motion = keyball.this_motion;
+        uint8_t* s = (uint8_t *) &motion;
+        for (int i=0; i<LEN_MOTION; i++) {
+            BMPAPI->ble.send_user_data_s2m(seq_no, s[i]);
+        }
+        dprintf("sent (%02d, %04x, %04x)\n", seq_no, motion.x, motion.y);
+        keyball.this_motion.x = 0;
+        keyball.this_motion.y = 0;
     }
 
     matrix_scan_user();

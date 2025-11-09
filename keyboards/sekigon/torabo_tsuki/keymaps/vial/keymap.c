@@ -132,6 +132,29 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         divide /= eeconfig_kb.cursor.rough_mul;
     }
 
+    if (eeconfig_kb.cursor.curve.shift_point[0] != 0) {
+        // scale mouse report by piecewise linear function
+        float norm = sqrtf(mouse_report.x * mouse_report.x + mouse_report.y * mouse_report.y);
+        if (norm != 0) {
+            int32_t s = 0;
+            for (int i = 0; i < CURVE_POINT; i++) {
+                if (norm < eeconfig_kb.cursor.curve.shift_point[i] * 10 || i == CURVE_POINT - 1 || eeconfig_kb.cursor.curve.shift_point[i] == 0) {
+                    // y = a[n]|x| + (a[n-1]-a[n])x[n-1]
+                    // g = y/|x| = a[n] + (a[n-1]-a[n])x[n-1]/|x|
+                    float g = eeconfig_kb.cursor.curve.shift_rate[i] + s / norm;
+                    if (debug_config.mouse) {
+                        printf("\tshift %d\n", i + 1);
+                        // printf("\tgain: %d %%, s;%ld\n", (int)g, s);
+                    }
+                    divide /= (g / 100.0f);
+
+                    break;
+                }
+                s = (eeconfig_kb.cursor.curve.shift_rate[i] - eeconfig_kb.cursor.curve.shift_rate[i + 1]) * eeconfig_kb.cursor.curve.shift_point[i] * 10;
+            }
+        }
+    }
+
     float rad = eeconfig_kb.cursor.rotate / 180.0f * M_PI;
     float c = cosf(rad);
     float s = sinf(rad);

@@ -976,6 +976,16 @@
       "shortName": "JU\nOVR"
     },
     {
+      "name"  : "ENABLE_WEB_BT_CONNECTION",
+      "title" : "Enable web bluetooth connection",
+      "shortName" : "EN\nWEBBT"
+    },
+    {
+      "name": "DISABLE_WEB_BT_CONNECTION",
+      "title": "Disable web bluetooth connection",
+      "shortName": "DIS\nWEBBT"
+    },
+    {
       "name": "ENABLE_DRAG_SCROLL_ON_HOLD",
       "title": "Enable drag scroll on hold",
       "shortName": "DRAG\nSCROLL"
@@ -1100,6 +1110,84 @@
                 "id_trackball_rough_coef",
                 0,
                 5
+              ]
+            },
+            {
+              "label": "Shift point 1 [x10 cnt]",
+              "type": "range",
+              "options": [
+                0,
+                255
+              ],
+              "content": [
+                "id_curve_shift_point[0]",
+                0,
+                26
+              ]
+            },
+            {
+              "label": "Shift rate 1 [%]",
+              "type": "range",
+              "options": [
+                1,
+                100
+              ],
+              "content": [
+                "id_curve_shift_rate[0]",
+                0,
+                27
+              ]
+            },
+            {
+              "label": "Shift point 2 [x10 cnt]",
+              "type": "range",
+              "options": [
+                0,
+                255
+              ],
+              "content": [
+                "id_curve_shift_point[1]",
+                0,
+                28
+              ]
+            },
+            {
+              "label": "Shift rate 2 [%]",
+              "type": "range",
+              "options": [
+                1,
+                100
+              ],
+              "content": [
+                "id_curve_shift_rate[1]",
+                0,
+                29
+              ]
+            },
+            {
+              "label": "Shift point 3 [x10 cnt]",
+              "type": "range",
+              "options": [
+                0,
+                255
+              ],
+              "content": [
+                "id_curve_shift_point[2]",
+                0,
+                30
+              ]
+            },
+            {
+              "label": "Shift rate 3 [%]",
+              "type": "range",
+              "options": [
+                1,
+                100
+              ],
+              "content": [
+                "id_curve_shift_rate[2]",
+                0,
+                31
               ]
             }
           ]
@@ -1395,7 +1483,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[0]",
+                    "id_connection_layer[0]",
                     0,
                     254,
                     0
@@ -1409,7 +1497,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[1]",
+                    "id_connection_layer[1]",
                     0,
                     254,
                     1
@@ -1423,7 +1511,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[2]",
+                    "id_connection_layer[2]",
                     0,
                     254,
                     2
@@ -1437,7 +1525,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[3]",
+                    "id_connection_layer[3]",
                     0,
                     254,
                     3
@@ -1451,7 +1539,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[4]",
+                    "id_connection_layer[4]",
                     0,
                     254,
                     4
@@ -1465,7 +1553,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[5]",
+                    "id_connection_layer[5]",
                     0,
                     254,
                     5
@@ -1479,7 +1567,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[6]",
+                    "id_connection_layer[6]",
                     0,
                     254,
                     6
@@ -1493,7 +1581,7 @@
                     8
                   ],
                   "content": [
-                    "id_trackball_aml_layer[7]",
+                    "id_connection_layer[7]",
                     0,
                     254,
                     7

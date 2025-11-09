@@ -19,8 +19,9 @@
 
 extern uint8_t extract_mod_bits(uint16_t code);
 
-#define DEFFERED_KEY_RECORD_LEN 6
+#define DEFFERED_KEY_RECORD_LEN 8
 static keyrecord_t deferred_key_record[DEFFERED_KEY_RECORD_LEN];
+static uint8_t     dkr_widx, dkr_ridx;
 
 static uint8_t  encoder_modifier            = 0;
 static uint16_t encoder_modifier_pressed_ms = 0;
@@ -29,14 +30,23 @@ static uint16_t encoder_modifier_pressed_ms = 0;
 #    define ENCODER_MODIFIER_TIMEOUT_MS 500
 #endif
 
-static void push_deferred_key_record(uint16_t keycode, keyevent_t *event) {
-    for (int i = 0; i < DEFFERED_KEY_RECORD_LEN; i++) {
-        if (deferred_key_record[i].keycode == KC_NO) {
-            keyrecord_t record     = {.event = *event, .keycode = keycode};
-            deferred_key_record[i] = record;
-            return;
-        }
+static int push_deferred_key_record(uint16_t keycode, keyevent_t *event) {
+    uint8_t widx = dkr_widx;
+    uint8_t next_idx = dkr_widx+1;
+    if (next_idx>= DEFFERED_KEY_RECORD_LEN) {
+        next_idx = 0;
     }
+
+    if (dkr_ridx == next_idx) {
+        // fifo full
+        return -1;
+    }
+
+    keyrecord_t record        = {.event = *event, .keycode = keycode};
+    deferred_key_record[widx] = record;
+    dkr_widx                  = next_idx;
+
+    return 0;
 }
 
 bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
@@ -62,22 +72,24 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
         return false;
     }
 
+    if ((dkr_ridx != dkr_widx) && record->event.key.row != VIAL_MATRIX_MAGIC) {
+        keyevent_t deferred_key_event = (keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = record->event.pressed, .time = record->event.time};
+        return push_deferred_key_record(keycode, &deferred_key_event);
+    }
+
     // To apply key overrides to keycodes combined shift modifier, separate to two actions
     if (keycode >= QK_MODS && keycode <= QK_MODS_MAX) {
         if (record->event.pressed) {
-            uint16_t   deferred_keycode   = QK_MODS_GET_BASIC_KEYCODE(keycode);
-            keyevent_t deferred_key_event = (keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 1, .time = (timer_read() | 1)};
-            register_mods(extract_mod_bits(keycode));
+            keyevent_t deferred_key_event = (keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = record->event.pressed, .time = record->event.time};
+            register_weak_mods(extract_mod_bits(keycode));
             wait_ms(QS_tap_code_delay);
-            push_deferred_key_record(deferred_keycode, &deferred_key_event);
+            return push_deferred_key_record(keycode, &deferred_key_event);
         } else {
-            uint16_t   deferred_keycode   = QK_MODS_GET_BASIC_KEYCODE(keycode);
-            keyevent_t deferred_key_event = ((keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = 0, .time = (timer_read() | 1)});
-            unregister_mods(extract_mod_bits(keycode));
+            keyevent_t deferred_key_event = ((keyevent_t){.type = KEY_EVENT, .key = (keypos_t){.row = VIAL_MATRIX_MAGIC, .col = VIAL_MATRIX_MAGIC}, .pressed = record->event.pressed, .time = record->event.time});
+            unregister_weak_mods(extract_mod_bits(keycode));
             wait_ms(QS_tap_code_delay);
-            push_deferred_key_record(deferred_keycode, &deferred_key_event);
+            return push_deferred_key_record(keycode, &deferred_key_event);
         }
-        return false;
     }
 
     if (record->event.pressed) {
@@ -125,6 +137,14 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
                 bmp_set_key_os_override(BMP_JP_KEY_US_OS_OVERRIDE);
                 return false;
             }
+            case EN_WEBBT: {
+                BMPAPI->ble.change_conn_mode(true);
+                return false;
+            }
+            case DIS_WEBBT: {
+                BMPAPI->ble.change_conn_mode(false);
+                return false;
+            }
         }
     }
     else {
@@ -140,13 +160,41 @@ bool process_record_bmp(uint16_t keycode, keyrecord_t *record) {
 }
 
 void bmp_post_keyboard_task(void) {
-    for (int i = 0; i < DEFFERED_KEY_RECORD_LEN; i++) {
-        if (deferred_key_record[i].keycode != KC_NO) {
-            g_vial_magic_keycode_override = deferred_key_record[i].keycode;
-            action_exec(deferred_key_record[i].event);
-            deferred_key_record[i].keycode = KC_NO;
-        } else {
-            return;
+    while (dkr_ridx != dkr_widx) {
+        uint8_t ridx = dkr_ridx;
+        dkr_ridx++;
+        if (dkr_ridx >= DEFFERED_KEY_RECORD_LEN) {
+            dkr_ridx = 0;
+        }
+
+        if (deferred_key_record[ridx].keycode != KC_NO) {
+            if (deferred_key_record[ridx].keycode >= QK_MODS && deferred_key_record[ridx].keycode <= QK_MODS_MAX) {
+                uint16_t kc                       = deferred_key_record[ridx].keycode;
+                uint8_t weak_mods                 = get_weak_mods();
+                uint8_t mods                      = get_mods();
+                uint8_t kc_mods                   = extract_mod_bits(kc);
+
+                if (deferred_key_record[ridx].event.pressed) {
+                    if (((weak_mods | mods) & kc_mods) != kc_mods) {
+                        register_mods(kc_mods);
+                        wait_ms(QS_tap_code_delay);
+                    } else {
+                        add_mods(kc_mods);
+                    }
+                } else {
+                    unregister_weak_mods(kc_mods);
+                }
+
+                g_vial_magic_keycode_override     = QK_MODS_GET_BASIC_KEYCODE(kc);
+                deferred_key_record[ridx].keycode = KC_NO;
+                action_exec(deferred_key_record[ridx].event);
+                set_mods(mods);
+                set_weak_mods(weak_mods);
+            } else {
+                g_vial_magic_keycode_override     = deferred_key_record[ridx].keycode;
+                deferred_key_record[ridx].keycode = KC_NO;
+                action_exec(deferred_key_record[ridx].event);
+            }
         }
     }
 }

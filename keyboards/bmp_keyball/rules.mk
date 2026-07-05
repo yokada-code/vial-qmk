@@ -6,8 +6,8 @@ BOOTLOADER = custom
 EEPROM_DRIVER  = custom
 
 CUSTOM_MATRIX = yes
-#SPLIT_KEYBOARD = yes
-#SPLIT_TRANSPORT = custom
+SPLIT_KEYBOARD = yes
+SPLIT_TRANSPORT = custom
 MOUSE_SHARED_EP = no
 
 # Build Options
@@ -30,13 +30,16 @@ BLUETOOTH_ENABLE = no       # Enable Bluetooth with the Adafruit EZ-Key HID
 AUDIO_ENABLE = no           # Audio output on port C6
 FAUXCLICKY_ENABLE = no      # Use buzzer to emulate clicky switches
 
-POINTING_DEVICE_ENABLE = yes
-POINTING_DEVICE_DRIVER = custom
 
-SRC += drivers/pmw3360/bmp_pmw3360.c
+# Use the default pmw3360 driver in qmk repository
+#SRC += drivers/pmw3360/bmp_pmw3360.c
+POINTING_DEVICE_ENABLE = yes
+POINTING_DEVICE_DRIVER = pmw3360
+
+
 #QUANTUM_LIB_SRC += spi_master.c
 
-SRC += lib/oledkit/oledkit.c
+#SRC += lib/oledkit/oledkit.c
 SRC += lib/keyball/bmp_keyball.c
 
 SPI_DRIVER_REQUIRED = yes

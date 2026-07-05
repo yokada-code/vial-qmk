@@ -16,21 +16,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "quantum.h"
-#ifdef SPLIT_KEYBOARD
-#    include "transactions.h"
-#endif
 
 #include "keyball.h"
 #include "apidef.h"
-#include "drivers/pmw3360/pmw3360.h"
 #include "print.h"
 #include "debug.h"
+#include "sensors/pmw3360.h"
 
 #include <string.h>
 
+#define PMW3360_SENSOR_ID   0
+
 #define LEN_MOTION (sizeof(keyball_motion_t)/sizeof(uint8_t))
-const uint8_t CPI_DEFAULT    = KEYBALL_CPI_DEFAULT / 100;
-const uint8_t CPI_MAX        = pmw3360_MAXCPI + 1;
+const uint8_t CPI_DEFAULT    = KEYBALL_CPI_DEFAULT / PMW33XX_CPI_STEP;
 const uint8_t SCROLL_DIV_MAX = 7;
 
 const uint16_t AML_TIMEOUT_MIN = 100;
@@ -63,31 +61,14 @@ keyball_t keyball = {
 
 __attribute__((weak)) void keyball_on_adjust_layout(keyball_adjust_t v) {}
 
-//////////////////////////////////////////////////////////////////////////////
-// Static utilities
+//static void rpc_get_info_invoke(void) {
+static void init_keyball_master(void) {
 
-// add16 adds two int16_t with clipping.
-static int16_t add16(int16_t a, int16_t b) {
-    int16_t r = a + b;
-    if (a >= 0 && b >= 0 && r < 0) {
-        r = 32767;
-    } else if (a < 0 && b < 0 && r >= 0) {
-        r = -32768;
-    }
-    return r;
-}
+    keyball.that_enable    = true;
+    keyball.this_have_ball = true;
+    keyball.that_have_ball = false;
 
-// divmod16 divides *v by div, returns the quotient, and assigns the remainder
-// to *v.
-static int16_t divmod16(int16_t *v, int16_t div) {
-    int16_t r = *v / div;
-    *v -= r * div;
-    return r;
-}
-
-// clip2int8 clips an integer fit into int8_t.
-static inline int8_t clip2int8(int16_t v) {
-    return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
+    keyball_on_adjust_layout(KEYBALL_ADJUST_PRIMARY);
 }
 
 #ifdef OLED_ENABLE
@@ -133,275 +114,6 @@ static void add_scroll_div(int8_t delta) {
     int8_t v = keyball_get_scroll_div() + delta;
     keyball_set_scroll_div(v < 1 ? 1 : v);
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// Pointing device driver
-
-#if KEYBALL_MODEL == 46
-void keyboard_pre_init_kb(void) {
-    keyball.this_have_ball = pmw3360_init();
-    keyboard_pre_init_user();
-}
-#endif
-
-void pointing_device_driver_init(void) {
-#if KEYBALL_MODEL != 46
-    keyball.this_have_ball = pmw3360_init();
-#endif
-    if (keyball.this_have_ball) {
-#if defined(KEYBALL_PMW3360_UPLOAD_SROM_ID)
-#    if KEYBALL_PMW3360_UPLOAD_SROM_ID == 0x04
-        pmw3360_srom_upload(pmw3360_srom_0x04);
-#    elif KEYBALL_PMW3360_UPLOAD_SROM_ID == 0x81
-        pmw3360_srom_upload(pmw3360_srom_0x81);
-#    else
-#        error Invalid value for KEYBALL_PMW3360_UPLOAD_SROM_ID. Please choose 0x04 or 0x81 or disable it.
-#    endif
-#endif
-        pmw3360_cpi_set(CPI_DEFAULT - 1);
-    }
-}
-
-uint16_t pointing_device_driver_get_cpi(void) {
-    return keyball_get_cpi();
-}
-
-void pointing_device_driver_set_cpi(uint16_t cpi) {
-    keyball_set_cpi(cpi);
-}
-
-__attribute__((weak)) void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-#if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
-    r->x = clip2int8(m->y);
-    r->y = clip2int8(m->x);
-    if (is_left) {
-        r->x = -r->x;
-        r->y = -r->y;
-    }
-#elif KEYBALL_MODEL == 46
-    r->x = clip2int8(m->x);
-    r->y = -clip2int8(m->y);
-#else
-#    error("unknown Keyball model")
-#endif
-    // clear motion
-    m->x = 0;
-    m->y = 0;
-}
-
-__attribute__((weak)) void keyball_on_apply_motion_to_mouse_scroll(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-    // consume motion of trackball.
-    int16_t div = 1 << (keyball_get_scroll_div() - 1);
-    int16_t x = divmod16(&m->x, div);
-    int16_t y = divmod16(&m->y, div);
-
-    // apply to mouse report.
-#if KEYBALL_MODEL == 61 || KEYBALL_MODEL == 39 || KEYBALL_MODEL == 147 || KEYBALL_MODEL == 44
-    r->h = clip2int8(y);
-    r->v = -clip2int8(x);
-    if (is_left) {
-        r->h = -r->h;
-        r->v = -r->v;
-    }
-#elif KEYBALL_MODEL == 46
-    r->h = clip2int8(x);
-    r->v = clip2int8(y);
-#else
-#    error("unknown Keyball model")
-#endif
-
-    // Scroll snapping
-#if KEYBALL_SCROLLSNAP_ENABLE == 1
-    // Old behavior up to 1.3.2)
-    uint32_t now = timer_read32();
-    if (r->h != 0 || r->v != 0) {
-        keyball.scroll_snap_last = now;
-    } else if (TIMER_DIFF_32(now, keyball.scroll_snap_last) >= KEYBALL_SCROLLSNAP_RESET_TIMER) {
-        keyball.scroll_snap_tension_h = 0;
-    }
-    if (abs(keyball.scroll_snap_tension_h) < KEYBALL_SCROLLSNAP_TENSION_THRESHOLD) {
-        keyball.scroll_snap_tension_h += y;
-        r->h = 0;
-    }
-#elif KEYBALL_SCROLLSNAP_ENABLE == 2
-    // New behavior
-    switch (keyball_get_scrollsnap_mode()) {
-        case KEYBALL_SCROLLSNAP_MODE_VERTICAL:
-            r->h = 0;
-            break;
-        case KEYBALL_SCROLLSNAP_MODE_HORIZONTAL:
-            r->v = 0;
-            break;
-        default:
-            // pass by without doing anything
-            break;
-    }
-#endif
-}
-
-static void motion_to_mouse(keyball_motion_t *m, report_mouse_t *r, bool is_left, bool as_scroll) {
-    if (as_scroll) {
-        keyball_on_apply_motion_to_mouse_scroll(m, r, is_left);
-    } else {
-        keyball_on_apply_motion_to_mouse_move(m, r, is_left);
-    }
-}
-
-static inline bool should_report(void) {
-    uint32_t now = timer_read32();
-#if defined(KEYBALL_REPORTMOUSE_INTERVAL) && KEYBALL_REPORTMOUSE_INTERVAL > 0
-    // throttling mouse report rate.
-    static uint32_t last = 0;
-    if (TIMER_DIFF_32(now, last) < KEYBALL_REPORTMOUSE_INTERVAL) {
-        return false;
-    }
-    last = now;
-#endif
-#if defined(KEYBALL_SCROLLBALL_INHIVITOR) && KEYBALL_SCROLLBALL_INHIVITOR > 0
-    if (TIMER_DIFF_32(now, keyball.scroll_mode_changed) < KEYBALL_SCROLLBALL_INHIVITOR) {
-        keyball.this_motion.x = 0;
-        keyball.this_motion.y = 0;
-        keyball.that_motion.x = 0;
-        keyball.that_motion.y = 0;
-    }
-#endif
-    return true;
-}
-
-report_mouse_t pointing_device_driver_get_report(report_mouse_t rep) {
-    // motion information has already been synced in matrix scan process
-    /*
-    // fetch from optical sensor.
-    if (keyball.this_have_ball) {
-        pmw3360_motion_t d = {0};
-        if (pmw3360_motion_burst(&d)) {
-            //ATOMIC_BLOCK_FORCEON {   //TODO: 必要ある？？？
-                keyball.this_motion.x = add16(keyball.this_motion.x, d.x);
-                keyball.this_motion.y = add16(keyball.this_motion.y, d.y);
-            //}
-        }
-    }
-    */
-    // report mouse event, if keyboard is primary.
-    if (is_keyboard_master() && should_report()) {  //TODO: reportのやりかた
-        // modify mouse report by PMW3360 motion.
-        motion_to_mouse(&keyball.this_motion, &rep, is_keyboard_left(), keyball.scroll_mode);
-        motion_to_mouse(&keyball.that_motion, &rep, !is_keyboard_left(), keyball.scroll_mode ^ keyball.this_have_ball);
-        // store mouse report for OLED.
-        keyball.last_mouse = rep;
-    }
-    return rep;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// Split RPC
-
-#ifdef SPLIT_KEYBOARD
-
-/*
-static void rpc_get_info_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
-    keyball_info_t info = {
-        .ballcnt = keyball.this_have_ball ? 1 : 0,
-    };
-    *(keyball_info_t *)out_data = info;
-    keyball_on_adjust_layout(KEYBALL_ADJUST_SECONDARY);
-}
-*/
-
-//static void rpc_get_info_invoke(void) {
-static void init_keyball_master(void) {
-    /*
-    static bool     negotiated = false;
-    static uint32_t last_sync  = 0;
-    static int      round      = 0;
-    uint32_t        now        = timer_read32();
-    if (negotiated || TIMER_DIFF_32(now, last_sync) < KEYBALL_TX_GETINFO_INTERVAL) {
-        return;
-    }
-    last_sync = now;
-    round++;
-    keyball_info_t recv = {0};
-
-    if (!transaction_rpc_exec(KEYBALL_GET_INFO, 0, NULL, sizeof(recv), &recv)) {
-        if (round < KEYBALL_TX_GETINFO_MAXTRY) {
-            dprintf("keyball:rpc_get_info_invoke: missed #%d\n", round);
-            return;
-        }
-    }
-
-    negotiated             = true;
-    */
-    keyball.that_enable    = true;
-    // Different from the original code. Assuming exactly one ball exists on either side
-    keyball.that_have_ball = keyball.this_have_ball ? 0 : 1;
-    //dprintf("keyball:rpc_get_info_invoke: negotiated #%d %d\n", round, keyball.that_have_ball);
-
-/*
-#    ifdef VIA_ENABLE
-    // adjust VIA layout options according to current combination.
-    uint8_t  layouts = (keyball.this_have_ball \
-                               ? (is_keyboard_left() ? 0x02 : 0x01)
-                               : (is_keyboard_left() ? 0x01 : 0x02)
-                       );
-    uint32_t curr    = via_get_layout_options();
-    uint32_t next    = (curr & ~0x3) | layouts;
-    if (next != curr) {
-        via_set_layout_options(next);
-    }
-#    endif
-*/
-
-    keyball_on_adjust_layout(KEYBALL_ADJUST_PRIMARY);
-}
-
-/*
-static void rpc_get_motion_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
-    *(keyball_motion_t *)out_data = keyball.this_motion;
-    // clear motion
-    keyball.this_motion.x = 0;
-    keyball.this_motion.y = 0;
-}
-
-static void rpc_get_motion_invoke(void) {
-    static uint32_t last_sync = 0;
-    uint32_t        now       = timer_read32();
-    if (TIMER_DIFF_32(now, last_sync) < KEYBALL_TX_GETMOTION_INTERVAL) {
-        return;
-    }
-    keyball_motion_t recv = {0};
-
-    if (transaction_rpc_exec(KEYBALL_GET_MOTION, 0, NULL, sizeof(recv), &recv)) {
-        keyball.that_motion.x = add16(keyball.that_motion.x, recv.x);
-        keyball.that_motion.y = add16(keyball.that_motion.y, recv.y);
-    }
-
-    last_sync = now;
-    return;
-}
-*/
-
-/*
-static void rpc_set_cpi_handler(uint8_t in_buflen, const void *in_data, uint8_t out_buflen, void *out_data) {
-    keyball_set_cpi(*(keyball_cpi_t *)in_data);
-}
-*/
-
-//static void rpc_set_cpi_invoke(void) {
-/*
-static void adjust_cpi_on_remote(void) {
-    if (!keyball.cpi_changed) {
-        return;
-    }
-    keyball_cpi_t req = keyball.cpi_value;
-    BMPAPI->ble.nus_send_bytes((uint8_t *)&req, sizeof(keyball_cpi_t));
-    if (!transaction_rpc_send(KEYBALL_SET_CPI, sizeof(req), &req)) {
-        return;
-    }
-    keyball.cpi_changed = false;
-}
-
-*/
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // OLED utility
@@ -580,16 +292,11 @@ uint8_t keyball_get_cpi(void) {
 }
 
 void keyball_set_cpi(uint8_t cpi) {
-    if (cpi > CPI_MAX) {
-        cpi = CPI_MAX;
-    }
     keyball.cpi_value   = cpi;
     keyball.cpi_changed = true;
-    if (keyball.this_have_ball) {
-        pmw3360_cpi_set(cpi == 0 ? CPI_DEFAULT - 1 : cpi - 1);
-    } else if (is_keyboard_master()) {
-        BMPAPI->ble.nus_send_bytes((uint8_t *)&keyball.cpi_value, sizeof(keyball.cpi_value));
-    }
+
+    pmw33xx_set_cpi(PMW3360_SENSOR_ID, cpi * PMW33XX_CPI_STEP);
+    keyball.cpi_value = pmw33xx_get_cpi(PMW3360_SENSOR_ID) / PMW33XX_CPI_STEP;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -609,28 +316,7 @@ bmp_error_t keyball_nus_rcv_callback_slave(const uint8_t *dat, uint32_t len) {
     return BMP_OK;
 }
 
-static uint8_t dat[LEN_MOTION];
-
-void keyball_user_data_callback_master(uint8_t id, uint8_t data) {
-    static uint8_t seq_no = 0;
-    static uint8_t packet_no;
-
-    if (id != seq_no) {
-        seq_no = id;
-        packet_no = 0;
-        dprintf("seq: %02d, ", id);
-    } else {
-        packet_no++;
-    }
-    dat[packet_no] = data;
-    //dprintf("%02x, ", data);
-    if (packet_no == LEN_MOTION -1) {
-        keyball_motion_t recv = *(keyball_motion_t *) dat;
-        dprintf("(%04x, %04x)\n", recv.x, recv.y);
-        keyball.that_motion.x = add16(keyball.that_motion.x, recv.x);
-        keyball.that_motion.y = add16(keyball.that_motion.y, recv.y);
-    }
-}
+void keyball_user_data_callback_master(uint8_t id, uint8_t data) { }
 
 bmp_error_t keyball_nus_rcv_callback_master(const uint8_t *dat, uint32_t len) {
     dprintf("get data\n");
@@ -638,21 +324,10 @@ bmp_error_t keyball_nus_rcv_callback_master(const uint8_t *dat, uint32_t len) {
         keyball.this_motion = *(keyball_motion_t *) dat;
         dprintf("get ball data\n");
     }
-
     return BMP_OK;
 }
 
 void keyboard_post_init_kb(void) {
-    /*
-#ifdef SPLIT_KEYBOARD
-    // register transaction handlers on secondary.
-    if (!is_keyboard_master()) {
-        transaction_register_rpc(KEYBALL_GET_INFO, rpc_get_info_handler);
-        transaction_register_rpc(KEYBALL_GET_MOTION, rpc_get_motion_handler);
-        transaction_register_rpc(KEYBALL_SET_CPI, rpc_set_cpi_handler);
-    }
-#endif
-    */
 
     if (is_keyboard_master()) {
         init_keyball_master();
@@ -679,19 +354,6 @@ void keyboard_post_init_kb(void) {
     keyball_on_adjust_layout(KEYBALL_ADJUST_PENDING);
     keyboard_post_init_user();
 }
-
-#if SPLIT_KEYBOARD
-void housekeeping_task_kb(void) {
-    if (is_keyboard_master()) {
-        //rpc_get_info_invoke();
-        if (keyball.that_have_ball) {
-            //rpc_get_motion_invoke();
-            //rpc_set_cpi_invoke();
-            //adjust_cpi_on_remote();
-        }
-    }
-}
-#endif
 
 static void pressing_keys_update(uint16_t keycode, keyrecord_t *record) {
     // Process only valid keycodes.
@@ -863,37 +525,3 @@ uint8_t mod_config(uint8_t mod) {
 }
 
 #endif
-
-//////////////////////////////////////////////////////////////////////////////
-// BLE Micro Pro
-void matrix_scan_kb() {
-    // fetch from optical sensor.
-    if (keyball.this_have_ball) {
-        pmw3360_motion_t d = {0};
-        if (pmw3360_motion_burst(&d)) {
-            //ATOMIC_BLOCK_FORCEON {
-                keyball.this_motion.x = add16(keyball.this_motion.x, d.x);
-                keyball.this_motion.y = add16(keyball.this_motion.y, d.y);
-            //}
-        }
-
-        //BMPAPI->app.schedule_next_task(MATRIX_SCAN_TIME_MS);
-    }
-    if (!is_keyboard_master()) {
-        static uint8_t seq_no = 0;
-        seq_no++;
-        if (seq_no >= 16) {
-            seq_no = 0;
-        }
-        keyball_motion_t motion = keyball.this_motion;
-        uint8_t* s = (uint8_t *) &motion;
-        for (int i=0; i<LEN_MOTION; i++) {
-            BMPAPI->ble.send_user_data_s2m(seq_no, s[i]);
-        }
-        dprintf("sent (%02d, %04x, %04x)\n", seq_no, motion.x, motion.y);
-        keyball.this_motion.x = 0;
-        keyball.this_motion.y = 0;
-    }
-
-    matrix_scan_user();
-}

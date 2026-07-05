@@ -21,12 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #include "keyball.h"
-#include "drivers/pmw3360/pmw3360.h"
+#include "sensors/pmw33xx_common.h"
 
 #include <string.h>
 
+#define KEYBALL_PMW3360_SENSOR_ID    0
+
 const uint8_t CPI_DEFAULT    = KEYBALL_CPI_DEFAULT / 100;
-const uint8_t CPI_MAX        = pmw3360_MAXCPI + 1;
 const uint8_t SCROLL_DIV_MAX = 7;
 
 const uint16_t AML_TIMEOUT_MIN = 100;
@@ -552,13 +553,10 @@ uint8_t keyball_get_cpi(void) {
 }
 
 void keyball_set_cpi(uint8_t cpi) {
-    if (cpi > CPI_MAX) {
-        cpi = CPI_MAX;
-    }
     keyball.cpi_value   = cpi;
     keyball.cpi_changed = true;
     if (keyball.this_have_ball) {
-        pmw3360_cpi_set(cpi == 0 ? CPI_DEFAULT - 1 : cpi - 1);
+        pmw33xx_set_cpi(KEYBALL_PMW3360_SENSOR_ID, cpi);
     }
 }
 
